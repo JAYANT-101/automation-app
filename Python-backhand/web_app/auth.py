@@ -9,7 +9,7 @@ from web_app.data_utils import insert_admin_in_admin_table,get_admin_info,get_ad
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
-@bp.route('/regester', method=('GET','POST'))
+@bp.route('/regester', methods=('GET','POST'))
 def register():
     if request.method == 'POST':
         username = request.form['username']

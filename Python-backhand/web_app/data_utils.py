@@ -41,7 +41,7 @@ def setup_checker_fields_db()-> None:
     with DBcm.UseDatabase(db_details) as db:
         db.execute(SQL_MAKE_CHECKER_FIELDS_TABLE)
 
-def setup_checker_db()-> None:
+def setup_checker_output_db()-> None:
     """This function will creat the checker tables in the database"""
     with DBcm.UseDatabase(db_details) as db:
         db.execute(SQL_MAKE_CHECKER_TABLE)

@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 from flask import Flask
 from . import db
+from . import auth
 
 load_dotenv()
 def create_app(test_config=None):
@@ -28,4 +29,8 @@ def create_app(test_config=None):
 
     #This initialized thr database
     db.init_app(app)
+
+    #This registers the blueprint of the auth
+    app.register_blueprint(auth.bp)
+
     return app

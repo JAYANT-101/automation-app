@@ -7,7 +7,7 @@ SQL_MAKE_ADMIN_TABLE = """CREATE TABLE admin (
     );"""
 #
 SQL_MAKE_USER_TABLE = """CREATE TABLE users (
-    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -15,40 +15,55 @@ SQL_MAKE_USER_TABLE = """CREATE TABLE users (
 """
 #
 SQL_MAKE_PRODUCT_TABLE = """CREATE TABLE Product(
-    product_id INT NOT NULL PRIMARY KEY auto_increment,
+    id INT NOT NULL PRIMARY KEY auto_increment,
     product_name VARCHAR(60) NOT NULL
     );
 """
 #
 SQL_MAKE_PO_TABLE = """CREATE TABLE po(
-    po_id INT NOT NULL PRIMARY KEY auto_increment,
-    FOREIGN KEY (product_id) REFERENCES Product(product_id),
+    id INT NOT NULL PRIMARY KEY auto_increment,
+    product_id INT NOT NULL ,
     po_number VARCHAR(50) NOT NULL,
     target INT NOT NULL,
     produced INT NOT NULL,
-    recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_product_name
+    FOREIGN KEY (product_id) 
+    REFERENCES Product(id)
     ); 
 """
 #
-SQL_MAKE_DEFECT_TABLE = """CREATE TABLE defect(
-    defect_id INT NOT NULL PRIMARY KEY auto_increment,
-    name VARCHRT(50) NOT NULL
+SQL_MAKE_DEFECT_TABLE = """CREATE TABLE defects(
+    id INT NOT NULL PRIMARY KEY auto_increment,
+    name VARCHAR(50) NOT NULL
     );"""
 #
 SQL_MAKE_CHECKER_FIELDS_TABLE = """CREATE TABLE checker_fields(
-    checker_field_id INT NOT NULL PRIMARY KEY auto_increment,
+    id INT NOT NULL PRIMARY KEY auto_increment,
     field_name VARCHAR(20) NOT NULL 
     );"""
 #
 SQL_MAKE_CHECKER_TABLE = """CREATE TABLE checker_output(
     id INT AUTO_INCREMENT PRIMARY KEY,
-    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    user_id INT NOT NULL ,
     line INT NOT NULL,
-    FOREIGN KEY (product_name) REFERENCES Product(product_name),
-    FOREIGN KEY (defect_id) REFERENCES defect(defect_id),
-    FOREIGN KEY (field_name) REFERENCES checker_fields(field_name),
+    product_id INT NOT NULL ,
+    defect_id INT NOT NULL ,
+    field_id INT NOT NULL ,
     actual_event_time TIMESTAMP,
-    recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_product_name2
+    FOREIGN KEY (product_id) 
+    REFERENCES Product(id),
+    CONSTRAINT fk_defect_id
+    FOREIGN KEY (defect_id) 
+    REFERENCES defects(id),
+    CONSTRAINT fk_field_name
+    FOREIGN KEY (field_id) 
+    REFERENCES checker_fields(id),
+    CONSTRAINT fk_user_name
+    FOREIGN KEY (user_id) 
+    REFERENCES users(id)
 );
 """
 #
