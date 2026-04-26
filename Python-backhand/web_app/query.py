@@ -2,14 +2,14 @@
 SQL_MAKE_ADMIN_TABLE = """CREATE TABLE admin (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );"""
 #
 SQL_MAKE_USER_TABLE = """CREATE TABLE users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 """
@@ -51,3 +51,9 @@ SQL_MAKE_CHECKER_TABLE = """CREATE TABLE checker_output(
     recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 """
+#
+SQL_INSERT_ADMIN = 'INSERT INTO admin (username, password) VALUES (%s, %s)'
+#
+SQL_GET_ADMIN_INFO = 'SELECT * FROM admin WHERE username = %s'
+#
+SQL_GET_ADMIN_DATA_BY_ID = 'SELECT * FROM user WHERE id = %s'
