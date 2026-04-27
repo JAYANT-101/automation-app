@@ -23,7 +23,7 @@ def create_app(test_config=None):
     os.makedirs(app.instance_path, exist_ok=True)
 
     # a simple page that says hello
-    @app.route('/')
+    @app.route('/home')
     def hello():
         return 'getting things started'
 
@@ -33,4 +33,6 @@ def create_app(test_config=None):
     #This registers the blueprint of the auth
     app.register_blueprint(auth.bp)
 
+    #main url
+    app.add_url_rule('/', endpoint='auth.login')
     return app
