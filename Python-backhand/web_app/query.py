@@ -1,4 +1,6 @@
 #
+from mariadb.cursors import SQL_SELECT
+
 SQL_MAKE_ADMIN_TABLE = """CREATE TABLE admin (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
@@ -74,3 +76,7 @@ SQL_GET_ADMIN_INFO = 'SELECT * FROM admin WHERE username = %s'
 SQL_GET_ADMIN_DATA_BY_ID = 'SELECT * FROM user WHERE id = %s'
 #
 SQL_INSERT_USER = 'INSERT INTO users (username, password) VALUES (%s, %s)'
+#
+SQL_SELECT_ALL_USERS_INFO = 'SELECT id,username FROM users'
+#
+SQL_DELETE_USER_BY_USERNAME = 'DELETE FROM users WHERE username=%s;'

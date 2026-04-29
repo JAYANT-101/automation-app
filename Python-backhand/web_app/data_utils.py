@@ -78,3 +78,13 @@ def insert_user_in_users_table(username:str, password)-> None:
     """Takes two arguments and add user in the users table """
     with DBcm.UseDatabase(db_details) as db:
         db.execute(SQL_INSERT_USER, (username, password,))
+
+def get_all_users_data():
+    with DBcm.UseDatabase(db_details) as db:
+        db.execute(SQL_SELECT_ALL_USERS_INFO)
+        return db.fetchall()
+
+def delete_user_by_username(username: str)-> None:
+    """This function deletes user ny username"""
+    with DBcm.UseDatabase(db_details) as db:
+        db.execute(SQL_DELETE_USER_BY_USERNAME, (username,))
