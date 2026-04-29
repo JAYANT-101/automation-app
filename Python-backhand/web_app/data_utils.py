@@ -73,3 +73,8 @@ def get_admin_info_by_id(id)->dict:
     with DBcm.UseDatabase(db_details) as db:
         db.execute(SQL_GET_ADMIN_DATA_BY_ID, (id,))
         return db.fetchall()
+
+def insert_user_in_users_table(username:str, password)-> None:
+    """Takes two arguments and add user in the users table """
+    with DBcm.UseDatabase(db_details) as db:
+        db.execute(SQL_INSERT_USER, (username, password,))

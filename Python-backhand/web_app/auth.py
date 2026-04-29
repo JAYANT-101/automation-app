@@ -1,6 +1,5 @@
 import functools
 
-from dotenv import load_dotenv
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for
 )
@@ -35,16 +34,17 @@ def login():
         username = request.form['username']
         password = request.form['password']
         error = None
-        admin =get_admin_info(username)
+        admin = get_admin_info(username)
+        id, _, rpassword, _ = list(admin[0])
 
         if admin is None:
             error = 'Incorrect username.'
-        elif not check_password_hash(admin['password'], password):
+        elif not check_password_hash(rpassword, password):
             error = 'Incorrect password.'
 
         if error is None:
             session.clear()
-            session['admin_id'] = admin['id']
+            session['admin_id'] = id
             return redirect(url_for('index'))
 
         flash(error)

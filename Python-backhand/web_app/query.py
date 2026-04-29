@@ -72,3 +72,5 @@ SQL_INSERT_ADMIN = 'INSERT INTO admin (username, password) VALUES (%s, %s)'
 SQL_GET_ADMIN_INFO = 'SELECT * FROM admin WHERE username = %s'
 #
 SQL_GET_ADMIN_DATA_BY_ID = 'SELECT * FROM user WHERE id = %s'
+#
+SQL_INSERT_USER = 'INSERT INTO users (username, password) VALUES (%s, %s)'
