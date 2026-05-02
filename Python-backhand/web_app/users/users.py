@@ -1,6 +1,6 @@
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, session, url_for)
-from werkzeug.security import check_password_hash, generate_password_hash
+    Blueprint, flash, redirect, render_template, request, url_for)
+from werkzeug.security import generate_password_hash
 from web_app.auth import login_required
 from web_app.data_utils import insert_user_in_users_table, get_all_users_data, delete_user_by_username
 
@@ -16,6 +16,7 @@ def show_users():
 bp = Blueprint('users', __name__, url_prefix='/users')
 
 bp.route('/add_user', methods=('GET','POST'))
+@login_required
 def add_user():
     """This function adds user that are going to be using the checker application on the app"""
     data = show_users()
@@ -38,6 +39,7 @@ def add_user():
     return render_template('users.add_user', data=data)
 
 bp.route('/delete_user')
+@login_required
 def delete_user(username: str):
     data = show_users()
     if request.method == 'POST':
