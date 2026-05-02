@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from flask import Flask
 from . import db
 from . import auth
+from . import users
 
 load_dotenv()
 def create_app(test_config=None):
@@ -32,6 +33,9 @@ def create_app(test_config=None):
 
     #This registers the blueprint of the auth
     app.register_blueprint(auth.bp)
+
+    #
+    app.register_blueprint(users.bp)
 
     #main url
     app.add_url_rule('/', endpoint='auth.login')
