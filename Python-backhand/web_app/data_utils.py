@@ -93,7 +93,7 @@ def insert_product(product_name: str)-> None:
     with DBcm.UseDatabase(db_details) as db:
         db.execute(SQL_INSERT_PRODUCT, (product_name,))
 
-def insert_po(product_name: str, po_number: str, target: int, produced: int)-> None:
+def insert_po(product_name: str, po_number: str, target: int, produced=0)-> None:
     """This function inserts data into the po table"""
     with DBcm.UseDatabase(db_details) as db:
         db.execute(SQL_INSERT_PO, (product_name, po_number, target, produced))
