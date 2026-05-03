@@ -31,16 +31,6 @@ def setup_po_db()-> None:
     with DBcm.UseDatabase(db_details) as db:
         db.execute(SQL_MAKE_PO_TABLE)
 
-def setup_defect_db()-> None:
-    """This function will creat the defect tables in the database"""
-    with DBcm.UseDatabase(db_details) as db:
-        db.execute(SQL_MAKE_DEFECT_TABLE)
-
-def setup_checker_fields_db()-> None:
-    """This function will creat the checker_fields tables in the database"""
-    with DBcm.UseDatabase(db_details) as db:
-        db.execute(SQL_MAKE_CHECKER_FIELDS_TABLE)
-
 def setup_checker_output_db()-> None:
     """This function will creat the checker tables in the database"""
     with DBcm.UseDatabase(db_details) as db:
@@ -53,8 +43,6 @@ def init_db()-> None:
         db.execute(SQL_MAKE_ADMIN_TABLE)
         db.execute(SQL_MAKE_PRODUCT_TABLE)
         db.execute(SQL_MAKE_PO_TABLE)
-        db.execute(SQL_MAKE_DEFECT_TABLE)
-        db.execute(SQL_MAKE_CHECKER_FIELDS_TABLE)
         db.execute(SQL_MAKE_CHECKER_TABLE)
 
 def insert_admin_in_admin_table(username:str, password)-> None:
@@ -88,3 +76,29 @@ def delete_user_by_username(username: str)-> None:
     """This function deletes user ny username"""
     with DBcm.UseDatabase(db_details) as db:
         db.execute(SQL_DELETE_USER_BY_USERNAME, (username,))
+
+def is_product_in_table(product_name: str)-> int:
+    """This function cheks if given product exists or not"""
+    with DBcm.UseDatabase(db_details) as db:
+        db.execute(SQL_IS_PRODUCT_IN_TABLE, (product_name,))
+        return db.fetchall()
+
+def is_po_in_table(po: str)-> int:
+    """This function checks if the given po exists"""
+    with DBcm.UseDatabase(db_details) as db:
+        db.execute(SQL_IS_PO_IN_TABLE, (po,))
+        return db.fetchall()
+def insert_product(product_name: str)-> None:
+    """This function inserts product in to the product table"""
+    with DBcm.UseDatabase(db_details) as db:
+        db.execute(SQL_INSERT_PRODUCT, (product_name,))
+
+def insert_po(product_name: str, po_number: str, target: int, produced: int)-> None:
+    """This function inserts data into the po table"""
+    with DBcm.UseDatabase(db_details) as db:
+        db.execute(SQL_INSERT_PO, (product_name, po_number, target, produced))
+
+def show_po_data()-> list[tuple]:
+    with DBcm.UseDatabase(db_details) as db:
+        db.execute(SQL_SHOW_PO_TABLE)
+        return db.fetchall()

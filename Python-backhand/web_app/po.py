@@ -1,6 +1,5 @@
 import os
-from sys import addaudithook
-
+from web_app.data_from_csv import extract_data
 from flask import (
     Blueprint, flash, redirect, render_template, request, url_for)
 from web_app.auth import login_required
@@ -26,7 +25,9 @@ def upload_po():
         if po_file and allowed_file(po_file.filename):
             try:
                 filename = secure_filename(po_file.filename)
-                po_file.save(os.path.join('po_csv', filename))
+                po_file.save(os.path.join('po_excl', filename))
+                po_data = extract_data(filename)
+
             except Exception as e:
                 error = str(e)
                 flash(error)
