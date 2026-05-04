@@ -16,14 +16,14 @@ SQL_MAKE_USER_TABLE = """CREATE TABLE users (
 #
 SQL_MAKE_PRODUCT_TABLE = """CREATE TABLE Product(
     id INT NOT NULL PRIMARY KEY auto_increment,
-    product_name VARCHAR(60) NOT NULL
+    product_name VARCHAR(60) UNIQUE NOT NULL
     );
 """
 #
 SQL_MAKE_PO_TABLE = """CREATE TABLE po(
     id INT NOT NULL PRIMARY KEY auto_increment,
     product_name VARCHAR(60) NOT NULL,
-    po_number VARCHAR(50) NOT NULL,
+    po_number VARCHAR(50)  NOT NULL,
     target INT NOT NULL,
     produced INT NOT NULL,
     recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

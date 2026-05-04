@@ -33,12 +33,10 @@ def add_user():
                 insert_user_in_users_table(username, generate_password_hash(password))
             except Exception as e:
                 error = f"User {username} is already registered."
-            else:
-                return redirect(url_for("auth.login"))
         flash(error)
-    return render_template('users.add_user', data=data)
+    return render_template('users/add_user.html', data=data)
 
-bp.route('/delete_user')
+bp.route('/delete_user', methods=('GET','POST'))
 @login_required
 def delete_user(username: str):
     data = show_users()
@@ -54,4 +52,4 @@ def delete_user(username: str):
             except Exception as e:
                 error = f"User {username} dose not exist"
         flash(error)
-    return render_template('users.delete_user', data=data)
+    return render_template('users/delete_user.html', data=data)

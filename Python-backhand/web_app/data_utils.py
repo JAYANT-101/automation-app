@@ -39,8 +39,8 @@ def setup_checker_output_db()-> None:
 def init_db()-> None:
     """This function creates all tables"""
     with DBcm.UseDatabase(db_details) as db:
-        db.execute(SQL_MAKE_USER_TABLE)
         db.execute(SQL_MAKE_ADMIN_TABLE)
+        db.execute(SQL_MAKE_USER_TABLE)
         db.execute(SQL_MAKE_PRODUCT_TABLE)
         db.execute(SQL_MAKE_PO_TABLE)
         db.execute(SQL_MAKE_CHECKER_TABLE)

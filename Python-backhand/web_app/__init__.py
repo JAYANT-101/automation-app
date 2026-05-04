@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from flask import Flask
-from . import db
+# from . import db
 from . import auth
 from . import users
 from . import po
@@ -30,7 +30,7 @@ def create_app(test_config=None):
         return 'getting things started'
 
     #This initialized thr database
-    db.init_app(app)
+    # db.init_app(app)
 
     #This registers the blueprint of the auth
     app.register_blueprint(auth.bp)
@@ -42,5 +42,5 @@ def create_app(test_config=None):
     app.register_blueprint(po.bp)
 
     #main url
-    app.add_url_rule('/', endpoint='auth.login')
+    # app.add_url_rule('/', endpoint='auth.login')
     return app

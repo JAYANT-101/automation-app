@@ -1,7 +1,4 @@
 import os
-
-from pandas.core.interchange.dataframe_protocol import DataFrame
-
 from web_app.data_from_csv import extract_data
 from flask import (
     Blueprint, flash, render_template, request)
@@ -11,7 +8,7 @@ from werkzeug.utils import secure_filename
 import pandas as pd
 
 def data_entry(po_data)->bool:
-    """This fuction filters the po_data and puts it in the database"""
+    """This function filters the po_data and puts it in the database"""
     df = pd.DataFrame(po_data)
     for row in df.itertuples():
         _, po_number, product_name, target = row
@@ -39,7 +36,7 @@ def allowed_file(filename: str)-> bool:
 
 bp = Blueprint("po", __name__ , url_prefix="/po")
 
-@bp.route("/upload_po", method=('GET', 'POST'))
+@bp.route("/upload_po", methods=('GET', 'POST'))
 @login_required
 def upload_po():
     """This function takes po_file """
@@ -56,4 +53,4 @@ def upload_po():
             except Exception as e:
                 error = str(e)
     flash(error)
-    return render_template('po.upload_po', data)
+    return render_template('po/upload_po.html', data)
