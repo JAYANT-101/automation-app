@@ -50,6 +50,7 @@ def delete_user(username: str):
         if error is None:
             try:
                 delete_user_by_username(username)
+                error = f'User {username} deleted'
             except Exception as e:
                 error = f"User {username} dose not exist"
         flash(error)

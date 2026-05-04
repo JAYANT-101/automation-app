@@ -4,6 +4,7 @@ from flask import Flask
 from . import db
 from . import auth
 from . import users
+from . import po
 
 load_dotenv()
 def create_app(test_config=None):
@@ -34,8 +35,11 @@ def create_app(test_config=None):
     #This registers the blueprint of the auth
     app.register_blueprint(auth.bp)
 
-    #
+    #This registers the blueprint of the users
     app.register_blueprint(users.bp)
+
+    #This registers the blueprint of po
+    app.register_blueprint(po.bp)
 
     #main url
     app.add_url_rule('/', endpoint='auth.login')
