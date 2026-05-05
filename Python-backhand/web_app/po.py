@@ -1,33 +1,41 @@
-import os
-from web_app.data_from_csv import extract_data
-from flask import (
-    Blueprint, flash, render_template, request)
+from pathlib import Path
+from web_app.data_from_excl import extract_data
 from web_app.auth import login_required
+from flask import (
+    Blueprint, current_app, flash, render_template, request)
 from web_app.data_utils import is_po_in_table, is_product_in_table, insert_product, insert_po, show_po_data
 from werkzeug.utils import secure_filename
 import pandas as pd
 
-def data_entry(po_data)->bool:
+UPLOAD_FOLDER = Path(__file__).resolve().parent / "po_excl"
+
+
+def row_exists(query_result) -> bool:
+    """DB EXISTS queries return rows like [(0,)] or [(1,)]."""
+    return bool(query_result and query_result[0][0])
+
+def data_entry(po_data)->str|None:
     """This function filters the po_data and puts it in the database"""
     df = pd.DataFrame(po_data)
-    for row in df.itertuples():
-        _, po_number, product_name, target = row
+    error = None
+    added_rows = 0
+    for row in df.itertuples(index=False):
+        po_number, product_name, target = row
         try:
-            if is_product_in_table(product_name):
-                continue
-            else:
+            if not row_exists(is_product_in_table(product_name)):
                 insert_product(product_name)
-            if is_po_in_table(po_number):
-                continue
-            else:
+
+            if not row_exists(is_po_in_table(po_number)):
                 insert_po(product_name, po_number, target)
+                added_rows += 1
         except Exception as e:
             error = str(e)
-        else:
-            error = "data added"
+            break
+    if error is None:
+        error = f"{added_rows} po rows added"
     return error
 
-ALLOWED_EXTENSION = {'csv'}
+ALLOWED_EXTENSION = {'xlsx'}
 
 def allowed_file(filename: str)-> bool:
     """This function checks of the file type is csv"""
@@ -41,16 +49,19 @@ bp = Blueprint("po", __name__ , url_prefix="/po")
 def upload_po():
     """This function takes po_file """
     if request.method == 'POST':
-        po_file = request.files['po_file']
-        error = None
-        if po_file and allowed_file(po_file.filename):
+        file = request.files.get('file')
+        error = 'wrong file type'
+        if file and allowed_file(file.filename):
             try:
-                filename = secure_filename(po_file.filename)
-                po_file.save(os.path.join('po_excl', filename))
-                po_data = extract_data(filename)
-                data = show_po_data()
-                error = data_entry(po_data)
+                filename = secure_filename(file.filename)
+                upload_folder = Path(current_app.config.get("PO_UPLOAD_FOLDER", UPLOAD_FOLDER))
+                upload_folder.mkdir(parents=True, exist_ok=True)
+                saved_file = upload_folder / filename
+                file.save(saved_file)
+                po_data = extract_data(saved_file)
             except Exception as e:
                 error = str(e)
-    flash(error)
-    return render_template('po/upload_po.html', data)
+            else:
+                error = data_entry(po_data)
+        flash(error)
+    return render_template('po/upload_po.html', data=show_po_data())

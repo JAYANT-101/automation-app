@@ -54,7 +54,7 @@ SQL_INSERT_ADMIN = 'INSERT INTO admin (username, password) VALUES (%s, %s)'
 #
 SQL_GET_ADMIN_INFO = 'SELECT * FROM admin WHERE username = %s'
 #
-SQL_GET_ADMIN_DATA_BY_ID = 'SELECT * FROM user WHERE id = %s'
+SQL_GET_ADMIN_DATA_BY_ID = 'SELECT * FROM admin WHERE id = %s'
 #
 SQL_INSERT_USER = 'INSERT INTO users (username, password) VALUES (%s, %s)'
 #
@@ -68,6 +68,6 @@ SQL_IS_PO_IN_TABLE = 'SELECT EXISTS(SELECT 1 FROM po WHERE po_number = %s);'
 #
 SQL_INSERT_PRODUCT = 'INSERT INTO Product (product_name) VALUES (%s);'
 #
-SQL_INSERT_PO = 'INSERT INTO po (prosuct_name, po_number, target, produced) VALUES (%s,%s,%s,%s);'
+SQL_INSERT_PO = 'INSERT INTO po (product_name, po_number, target, produced) VALUES (%s,%s,%s,%s);'
 #
 SQL_SHOW_PO_TABLE = 'SELECT product_name,po_number,target FROM po'

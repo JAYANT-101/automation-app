@@ -45,7 +45,7 @@ def login():
         if error is None:
             session.clear()
             session['admin_id'] = id
-            return redirect(url_for('index'))
+            return redirect(url_for('front'))
 
         flash(error)
 

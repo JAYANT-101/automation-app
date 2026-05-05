@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
 
 {% block header %}
-  <h1>{% block title %}Log In{% endblock %}</h1>
+  <h1>{% block title %}Upload po{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
   <form method="post" enctype="multipart/form-data">
-    <label for="file">po_file</label>
+    <label for="file">File:</label>
     <input type="file" name="file" id="file"  required>
     <input type="submit" value="submit">
   </form>
@@ -20,12 +20,13 @@
     </tr>
   </thead>
   <tbody>
-  {% for po_number, product_name, target in data %}
+  {% for product_name, po_number, target in data %}
     <tr>
       <td>{{po_number}}</td>
       <td>{{product_name}}</td>
       <td>{{target}}</td>
     </tr>
   {% endfor %}
+  </tbody>
 </table>
 {% endblock %}

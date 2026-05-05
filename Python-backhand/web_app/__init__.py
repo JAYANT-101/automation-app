@@ -1,10 +1,10 @@
 import os
 from dotenv import load_dotenv
 from flask import Flask
-# from . import db
 from . import auth
 from . import users
 from . import po
+from . import index
 
 load_dotenv()
 def create_app(test_config=None):
@@ -41,6 +41,9 @@ def create_app(test_config=None):
     #This registers the blueprint of po
     app.register_blueprint(po.bp)
 
+    #This registers the bluprint of index
+    app.register_blueprint(index.bp)
+
     #main url
-    # app.add_url_rule('/', endpoint='auth.login')
+    app.add_url_rule('/', endpoint='front')
     return app

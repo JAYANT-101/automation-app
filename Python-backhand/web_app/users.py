@@ -6,16 +6,17 @@ from web_app.data_utils import insert_user_in_users_table, get_all_users_data, d
 
 def show_users():
     """This function shoes all users"""
+    users = []
     try:
         users = get_all_users_data()
     except Exception as e:
         flash(str(e))
-    data = [name for _,name,*_ in users]
+    data = [name for _, name, *_ in users]
     return data
 
-bp = Blueprint('users', __name__, url_prefix='/users')
+bp = Blueprint("users", __name__, url_prefix="/users")
 
-bp.route('/add_user', methods=('GET','POST'))
+@bp.route("/add_users", methods=('GET','POST'))
 @login_required
 def add_user():
     """This function adds user that are going to be using the checker application on the app"""
@@ -33,12 +34,15 @@ def add_user():
                 insert_user_in_users_table(username, generate_password_hash(password))
             except Exception as e:
                 error = f"User {username} is already registered."
+        if error is None:
+            error = f"User {username} added"
+            data = show_users()
         flash(error)
     return render_template('users/add_user.html', data=data)
 
-bp.route('/delete_user', methods=('GET','POST'))
+@bp.route("/delete_user", methods=('GET','POST'))
 @login_required
-def delete_user(username: str):
+def delete_user():
     data = show_users()
     if request.method == 'POST':
         username = request.form['username']
