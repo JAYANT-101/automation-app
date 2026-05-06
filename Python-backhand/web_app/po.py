@@ -52,6 +52,7 @@ def upload_po():
         file = request.files.get('file')
         error = 'wrong file type'
         if file and allowed_file(file.filename):
+            saved_file = None
             try:
                 filename = secure_filename(file.filename)
                 upload_folder = Path(current_app.config.get("PO_UPLOAD_FOLDER", UPLOAD_FOLDER))
@@ -59,9 +60,13 @@ def upload_po():
                 saved_file = upload_folder / filename
                 file.save(saved_file)
                 po_data = extract_data(saved_file)
+                error = data_entry(po_data)
             except Exception as e:
                 error = str(e)
-            else:
-                error = data_entry(po_data)
+            finally:
+                if saved_file and saved_file.exists():
+                    saved_file.unlink()
         flash(error)
     return render_template('po/upload_po.html', data=show_po_data())
+
+# @bp.route("update_po")
