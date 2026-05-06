@@ -71,3 +71,11 @@ SQL_INSERT_PRODUCT = 'INSERT INTO Product (product_name) VALUES (%s);'
 SQL_INSERT_PO = 'INSERT INTO po (product_name, po_number, target, produced) VALUES (%s,%s,%s,%s);'
 #
 SQL_SHOW_PO_TABLE = 'SELECT product_name,po_number,target FROM po'
+#
+SQL_GET_ALL_PRODUCT_NAMES = 'SELECT product_name FROM Product ORDER BY product_name;'
+#
+SQL_GET_PO_NUMBERS_BY_PRODUCT = 'SELECT po_number,target FROM po WHERE product_name = %s ORDER BY po_number;'
+#
+SQL_DELETE_PO_BY_NUMBER = 'DELETE FROM po WHERE product_name = %s AND po_number = %s;'
+#
+SQL_UPDATE_PO_TARGET = 'UPDATE po SET target = %s WHERE product_name = %s AND po_number = %s;'

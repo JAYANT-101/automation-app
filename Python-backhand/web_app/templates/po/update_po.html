@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Update PO{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form method="post" id="updatePoForm">
+    <label for="productSelect">Product Name</label>
+    <select id="productSelect" name="product_name" class="form-select" required>
+      <option value="">Select product</option>
+      {% for product_name in products %}
+        <option value="{{ product_name }}">{{ product_name }}</option>
+      {% endfor %}
+    </select>
+
+    <label for="poSelect">PO Number</label>
+    <select id="poSelect" name="po_number" class="form-select" disabled required>
+      <option value="">Select product first</option>
+    </select>
+
+    <label for="targetInput">Target</label>
+    <input
+      type="number"
+      id="targetInput"
+      name="target"
+      class="form-control"
+      min="0"
+      disabled
+    >
+
+    <div class="d-flex gap-2">
+      <button type="submit" name="action" value="update" class="btn btn-primary">
+        Update
+      </button>
+      <button type="submit" name="action" value="delete" class="btn btn-danger">
+        Delete
+      </button>
+    </div>
+  </form>
+
+  <script>
+    const productSelect = document.getElementById("productSelect");
+    const poSelect = document.getElementById("poSelect");
+    const targetInput = document.getElementById("targetInput");
+
+    function resetPoSelect(message) {
+      poSelect.innerHTML = "";
+      const option = document.createElement("option");
+      option.value = "";
+      option.textContent = message;
+      poSelect.appendChild(option);
+      poSelect.disabled = true;
+      targetInput.value = "";
+      targetInput.disabled = true;
+    }
+
+    productSelect.addEventListener("change", async () => {
+      const productName = productSelect.value;
+
+      if (!productName) {
+        resetPoSelect("Select product first");
+        return;
+      }
+
+      resetPoSelect("Loading...");
+
+      const response = await fetch(
+        "{{ url_for('po.po_numbers', product_name='__PRODUCT__') }}".replace(
+          "__PRODUCT__",
+          encodeURIComponent(productName)
+        )
+      );
+      const data = await response.json();
+
+      resetPoSelect(data.po_numbers.length ? "Select PO number" : "No PO numbers found");
+
+      if (!data.po_numbers.length) {
+        return;
+      }
+
+      data.po_numbers.forEach((po) => {
+        const option = document.createElement("option");
+        option.value = po.po_number;
+        option.textContent = po.po_number;
+        option.dataset.target = po.target;
+        poSelect.appendChild(option);
+      });
+
+      poSelect.disabled = false;
+    });
+
+    poSelect.addEventListener("change", () => {
+      const selectedOption = poSelect.options[poSelect.selectedIndex];
+      targetInput.value = selectedOption && selectedOption.value
+        ? selectedOption.dataset.target
+        : "";
+      targetInput.disabled = !selectedOption || !selectedOption.value;
+    });
+  </script>
+{% endblock %}

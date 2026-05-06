@@ -2,8 +2,18 @@ from pathlib import Path
 from web_app.data_from_excl import extract_data
 from web_app.auth import login_required
 from flask import (
-    Blueprint, current_app, flash, render_template, request)
-from web_app.data_utils import is_po_in_table, is_product_in_table, insert_product, insert_po, show_po_data
+    Blueprint, current_app, flash, jsonify, render_template, request)
+from web_app.data_utils import (
+    delete_po_by_number,
+    get_all_product_names,
+    get_po_numbers_by_product,
+    is_po_in_table,
+    is_product_in_table,
+    insert_product,
+    insert_po,
+    show_po_data,
+    update_po_target,
+)
 from werkzeug.utils import secure_filename
 import pandas as pd
 
@@ -69,4 +79,43 @@ def upload_po():
         flash(error)
     return render_template('po/upload_po.html', data=show_po_data())
 
-# @bp.route("update_po")
+@bp.route("/po_numbers/<path:product_name>")
+@login_required
+def po_numbers(product_name):
+    """Return PO numbers for the selected product."""
+    po_rows = get_po_numbers_by_product(product_name)
+    return jsonify({
+        "po_numbers": [
+            {"po_number": po_number, "target": target}
+            for po_number, target in po_rows
+        ]
+    })
+
+@bp.route("/update_po", methods=('GET', 'POST'))
+@login_required
+def update_po():
+    """Update target or delete a selected PO number."""
+    if request.method == 'POST':
+        action = request.form.get('action')
+        product_name = request.form.get('product_name')
+        po_number = request.form.get('po_number')
+        target = request.form.get('target')
+
+        if not product_name or not po_number:
+            flash("Select a product and PO number")
+        elif action == "delete":
+            delete_po_by_number(product_name, po_number)
+            flash(f"PO {po_number} deleted")
+        elif action == "update":
+            try:
+                update_po_target(product_name, po_number, int(target))
+                flash(f"Target updated for PO {po_number}")
+            except (TypeError, ValueError):
+                flash("Target must be a valid number")
+        else:
+            flash("Choose update or delete")
+
+    return render_template(
+        'po/update_po.html',
+        products=get_all_product_names(),
+    )

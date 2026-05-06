@@ -102,3 +102,21 @@ def show_po_data()-> list[tuple]:
     with DBcm.UseDatabase(db_details) as db:
         db.execute(SQL_SHOW_PO_TABLE)
         return db.fetchall()
+
+def get_all_product_names()-> list[str]:
+    with DBcm.UseDatabase(db_details) as db:
+        db.execute(SQL_GET_ALL_PRODUCT_NAMES)
+        return [row[0] for row in db.fetchall()]
+
+def get_po_numbers_by_product(product_name: str)-> list[tuple]:
+    with DBcm.UseDatabase(db_details) as db:
+        db.execute(SQL_GET_PO_NUMBERS_BY_PRODUCT, (product_name,))
+        return db.fetchall()
+
+def delete_po_by_number(product_name: str, po_number: str)-> None:
+    with DBcm.UseDatabase(db_details) as db:
+        db.execute(SQL_DELETE_PO_BY_NUMBER, (product_name, po_number,))
+
+def update_po_target(product_name: str, po_number: str, target: int)-> None:
+    with DBcm.UseDatabase(db_details) as db:
+        db.execute(SQL_UPDATE_PO_TARGET, (target, product_name, po_number,))

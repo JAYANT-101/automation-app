@@ -40,6 +40,12 @@ def create_app(test_config=None):
 
     #This registers the blueprint of po
     app.register_blueprint(po.bp)
+    app.add_url_rule(
+        '/update_po',
+        endpoint='update_po',
+        view_func=po.update_po,
+        methods=('GET', 'POST'),
+    )
 
     #This registers the bluprint of index
     app.register_blueprint(index.bp)
