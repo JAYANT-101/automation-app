@@ -70,6 +70,8 @@ SQL_INSERT_PRODUCT = 'INSERT INTO Product (product_name) VALUES (%s);'
 #
 SQL_INSERT_PO = 'INSERT INTO po (product_name, po_number, target, produced) VALUES (%s,%s,%s,%s);'
 #
+SQL_INSERT_CHECKER_OUTPUT = 'INSERT INTO checker_output (user_id, line, po_id, defect_name, field_name, actual_event_time) VALUES (%s,%s,%s,%s,%s,%s);'
+#
 SQL_SHOW_PO_TABLE = 'SELECT product_name,po_number,target FROM po'
 #
 SQL_GET_ALL_PRODUCT_NAMES = 'SELECT product_name FROM Product ORDER BY product_name;'
