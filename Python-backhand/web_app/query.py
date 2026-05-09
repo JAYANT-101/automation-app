@@ -36,17 +36,17 @@ SQL_MAKE_CHECKER_TABLE = """CREATE TABLE checker_output(
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL ,
     line INT NOT NULL,
-    product_name VARCHAR(60) NOT NULL ,
+    po_id INT NOT NULL,
     defect_name VARCHAR(50) NOT NULL,
     field_name VARCHAR(20) NOT NULL  ,
     actual_event_time TIMESTAMP,
     recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_product_name2
-    FOREIGN KEY (product_name) 
-    REFERENCES Product(product_name),
     CONSTRAINT fk_user_name
     FOREIGN KEY (user_id) 
-    REFERENCES users(id)
+    REFERENCES users(id),
+    CONSTRAINT fk_po_id
+    FOREIGN KEY (po_id) 
+    REFERENCES po(id)
 );
 """
 #
