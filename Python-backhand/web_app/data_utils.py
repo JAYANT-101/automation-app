@@ -102,15 +102,15 @@ def insert_checker_output(
         user_id: int,
         line: int,
         po_id: int,
-        defect_name: str,
         field_name: str,
+        defect_name: str,
         actual_event_time: str,
 )-> None:
     """This function inserts data into the checker_output table"""
     with DBcm.UseDatabase(db_details) as db:
         db.execute(
             SQL_INSERT_CHECKER_OUTPUT,
-            (user_id, line, po_id, defect_name, field_name, actual_event_time),
+            (user_id, line, po_id, field_name, defect_name, actual_event_time),
         )
 
 def show_po_data()-> list[tuple]:

@@ -37,8 +37,8 @@ SQL_MAKE_CHECKER_TABLE = """CREATE TABLE checker_output(
     user_id INT NOT NULL ,
     line INT NOT NULL,
     po_id INT NOT NULL,
-    defect_name VARCHAR(50) NOT NULL,
-    field_name VARCHAR(20) NOT NULL  ,
+    field_name VARCHAR(20) NOT NULL ,
+    defect_name VARCHAR(50),
     actual_event_time TIMESTAMP,
     recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_user_name
@@ -70,7 +70,7 @@ SQL_INSERT_PRODUCT = 'INSERT INTO Product (product_name) VALUES (%s);'
 #
 SQL_INSERT_PO = 'INSERT INTO po (product_name, po_number, target, produced) VALUES (%s,%s,%s,%s);'
 #
-SQL_INSERT_CHECKER_OUTPUT = 'INSERT INTO checker_output (user_id, line, po_id, defect_name, field_name, actual_event_time) VALUES (%s,%s,%s,%s,%s,%s);'
+SQL_INSERT_CHECKER_OUTPUT = 'INSERT INTO checker_output (user_id, line, po_id, field_name, defect_name, actual_event_time) VALUES (%s,%s,%s,%s,%s,%s);'
 #
 SQL_SHOW_PO_TABLE = 'SELECT product_name,po_number,target FROM po'
 #
