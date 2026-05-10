@@ -5,5 +5,5 @@ bp = Blueprint('index', __name__)
 
 @bp.route('/')
 def index():
-    a = "sexy websit"
+    a = "sexy website"
     return render_template('front.html',a=a)
