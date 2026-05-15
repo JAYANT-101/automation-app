@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Checker Output{% endblock %}
+
+{% block header %}
+  <h1>Checker Output</h1>
+{% endblock %}
+
+{% block content %}
+  <div class="table-responsive">
+    <table class="table table-striped table-hover align-middle">
+      <thead>
+        <tr>
+          <th scope="col">PO Number</th>
+          <th scope="col">Product Name</th>
+          <th scope="col" class="text-end">Pass</th>
+          <th scope="col" class="text-end">Reject</th>
+          <th scope="col" class="text-end">Alter</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for po_number, product_name, pass_count, reject_count, alter_count in rows %}
+          <tr>
+            <td>{{ po_number }}</td>
+            <td>{{ product_name }}</td>
+            <td class="text-end">{{ pass_count }}</td>
+            <td class="text-end">{{ reject_count }}</td>
+            <td class="text-end">{{ alter_count }}</td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="5" class="text-center text-muted py-4">No checker output found.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

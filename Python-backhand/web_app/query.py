@@ -81,3 +81,17 @@ SQL_GET_PO_NUMBERS_BY_PRODUCT = 'SELECT po_number,target FROM po WHERE product_n
 SQL_DELETE_PO_BY_NUMBER = 'DELETE FROM po WHERE product_name = %s AND po_number = %s;'
 #
 SQL_UPDATE_PO_TARGET = 'UPDATE po SET target = %s WHERE product_name = %s AND po_number = %s;'
+#
+SQL_SHOW_CHECKER_OUTPUT_DASHBOARD = """
+SELECT
+    po.po_number,
+    po.product_name,
+    COALESCE(SUM(CASE WHEN checker_output.field_name = 'pass' THEN 1 ELSE 0 END), 0) AS pass_count,
+    COALESCE(SUM(CASE WHEN checker_output.field_name = 'reject' THEN 1 ELSE 0 END), 0) AS reject_count,
+    COALESCE(SUM(CASE WHEN checker_output.field_name = 'alter' THEN 1 ELSE 0 END), 0) AS alter_count
+FROM po
+LEFT JOIN checker_output
+    ON checker_output.po_id = po.id
+GROUP BY po.id, po.po_number, po.product_name
+ORDER BY po.po_number;
+"""
