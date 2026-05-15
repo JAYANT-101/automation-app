@@ -15,6 +15,7 @@ def get_checkr_data_module(monkeypatch):
 
     data_utils = types.ModuleType("web_app.data_utils")
     data_utils.insert_checker_output = lambda **kwargs: None
+    data_utils.increment_po_produced = lambda po_id: None
 
     monkeypatch.setitem(sys.modules, "web_app", web_app)
     monkeypatch.setitem(sys.modules, "web_app.data_utils", data_utils)
@@ -62,6 +63,7 @@ def test_checker_output_api_saves_pass_with_empty_defect_name(
         monkeypatch,
 ):
     saved_data = {}
+    incremented_po_ids = []
 
     def fake_insert_checker_output(**kwargs):
         saved_data.update(kwargs)
@@ -70,6 +72,11 @@ def test_checker_output_api_saves_pass_with_empty_defect_name(
         get_checkr_data_module,
         "insert_checker_output",
         fake_insert_checker_output,
+    )
+    monkeypatch.setattr(
+        get_checkr_data_module,
+        "increment_po_produced",
+        incremented_po_ids.append,
     )
 
     payload = valid_checker_output_data()
@@ -83,6 +90,7 @@ def test_checker_output_api_saves_pass_with_empty_defect_name(
         "data": expected_data,
     }
     assert saved_data == expected_data
+    assert incremented_po_ids == [payload["po_id"]]
 
 
 def test_checker_output_api_saves_alter_with_defect_name(
@@ -91,6 +99,7 @@ def test_checker_output_api_saves_alter_with_defect_name(
         monkeypatch,
 ):
     saved_data = {}
+    incremented_po_ids = []
 
     def fake_insert_checker_output(**kwargs):
         saved_data.update(kwargs)
@@ -99,6 +108,11 @@ def test_checker_output_api_saves_alter_with_defect_name(
         get_checkr_data_module,
         "insert_checker_output",
         fake_insert_checker_output,
+    )
+    monkeypatch.setattr(
+        get_checkr_data_module,
+        "increment_po_produced",
+        incremented_po_ids.append,
     )
 
     payload = valid_alter_checker_output_data()
@@ -111,6 +125,44 @@ def test_checker_output_api_saves_alter_with_defect_name(
         "data": payload,
     }
     assert saved_data == payload
+    assert incremented_po_ids == []
+
+
+def test_checker_output_api_saves_reject_without_incrementing_produced(
+        client,
+        get_checkr_data_module,
+        monkeypatch,
+):
+    saved_data = {}
+    incremented_po_ids = []
+
+    def fake_insert_checker_output(**kwargs):
+        saved_data.update(kwargs)
+
+    monkeypatch.setattr(
+        get_checkr_data_module,
+        "insert_checker_output",
+        fake_insert_checker_output,
+    )
+    monkeypatch.setattr(
+        get_checkr_data_module,
+        "increment_po_produced",
+        incremented_po_ids.append,
+    )
+
+    payload = valid_checker_output_data()
+    payload["field_name"] = "reject"
+    response = client.post("/checker-output", json=payload)
+    expected_data = {**payload, "defect_name": None}
+
+    assert response.status_code == 201
+    assert response.get_json() == {
+        "status": "created",
+        "message": "Checker output saved.",
+        "data": expected_data,
+    }
+    assert saved_data == expected_data
+    assert incremented_po_ids == []
 
 
 def test_checker_output_api_strips_string_fields(
@@ -243,6 +295,8 @@ def test_checker_output_api_returns_error_when_insert_fails(
         get_checkr_data_module,
         monkeypatch,
 ):
+    incremented_po_ids = []
+
     def fake_insert_checker_output(**kwargs):
         raise Exception("database insert failed")
 
@@ -251,6 +305,11 @@ def test_checker_output_api_returns_error_when_insert_fails(
         "insert_checker_output",
         fake_insert_checker_output,
     )
+    monkeypatch.setattr(
+        get_checkr_data_module,
+        "increment_po_produced",
+        incremented_po_ids.append,
+    )
 
     response = client.post("/checker-output", json=valid_alter_checker_output_data())
 
@@ -258,4 +317,33 @@ def test_checker_output_api_returns_error_when_insert_fails(
     assert response.get_json() == {
         "status": "error",
         "errors": ["database insert failed"],
+    }
+    assert incremented_po_ids == []
+
+
+def test_checker_output_api_returns_error_when_produced_increment_fails(
+        client,
+        get_checkr_data_module,
+        monkeypatch,
+):
+    def fake_increment_po_produced(po_id):
+        raise Exception("database update failed")
+
+    monkeypatch.setattr(
+        get_checkr_data_module,
+        "insert_checker_output",
+        lambda **kwargs: None,
+    )
+    monkeypatch.setattr(
+        get_checkr_data_module,
+        "increment_po_produced",
+        fake_increment_po_produced,
+    )
+
+    response = client.post("/checker-output", json=valid_checker_output_data())
+
+    assert response.status_code == 500
+    assert response.get_json() == {
+        "status": "error",
+        "errors": ["database update failed"],
     }

@@ -82,6 +82,8 @@ SQL_DELETE_PO_BY_NUMBER = 'DELETE FROM po WHERE product_name = %s AND po_number 
 #
 SQL_UPDATE_PO_TARGET = 'UPDATE po SET target = %s WHERE product_name = %s AND po_number = %s;'
 #
+SQL_INCREMENT_PO_PRODUCED = 'UPDATE po SET produced = produced + 1 WHERE id = %s;'
+#
 SQL_SHOW_CHECKER_OUTPUT_DASHBOARD = """
 SELECT
     po.po_number,

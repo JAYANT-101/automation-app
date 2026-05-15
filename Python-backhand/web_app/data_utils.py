@@ -136,6 +136,10 @@ def update_po_target(product_name: str, po_number: str, target: int)-> None:
     with DBcm.UseDatabase(db_details) as db:
         db.execute(SQL_UPDATE_PO_TARGET, (target, product_name, po_number,))
 
+def increment_po_produced(po_id: int)-> None:
+    with DBcm.UseDatabase(db_details) as db:
+        db.execute(SQL_INCREMENT_PO_PRODUCED, (po_id,))
+
 def show_checker_output_dashboard()-> list[tuple]:
     with DBcm.UseDatabase(db_details) as db:
         db.execute(SQL_SHOW_CHECKER_OUTPUT_DASHBOARD)
