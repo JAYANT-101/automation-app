@@ -35,12 +35,13 @@ def login():
         password = request.form['password']
         error = None
         admin = get_admin_info(username)
-        id, _, rpassword, _ = list(admin[0])
 
-        if admin is None:
+        if not admin:
             error = 'Incorrect username.'
-        elif not check_password_hash(rpassword, password):
-            error = 'Incorrect password.'
+        else:
+            id, _, rpassword, _ = list(admin[0])
+            if not check_password_hash(rpassword, password):
+                error = 'Incorrect password.'
 
         if error is None:
             session.clear()
@@ -63,7 +64,7 @@ def load_logged_in_user():
 @bp.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('index'))
+    return redirect(url_for('front'))
 
 def login_required(view):
     @functools.wraps(view)
