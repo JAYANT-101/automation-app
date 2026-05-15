@@ -18,7 +18,10 @@
           <th scope="col" class="text-end">Alter</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody
+        id="checker-output-dashboard-body"
+        data-dashboard-url="{{ url_for('checkers_output.dashboard_data') }}"
+      >
         {% for po_number, product_name, pass_count, reject_count, alter_count in rows %}
           <tr>
             <td>{{ po_number }}</td>
@@ -35,4 +38,81 @@
       </tbody>
     </table>
   </div>
+
+  <script>
+    (() => {
+      const tableBody = document.getElementById("checker-output-dashboard-body");
+      const dashboardUrl = tableBody.dataset.dashboardUrl;
+      const refreshIntervalMs = 3000;
+
+      const emptyRow = () => {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+        cell.colSpan = 5;
+        cell.className = "text-center text-muted py-4";
+        cell.textContent = "No checker output found.";
+        row.appendChild(cell);
+        return row;
+      };
+
+      const countCell = (value) => {
+        const cell = document.createElement("td");
+        cell.className = "text-end";
+        cell.textContent = value;
+        return cell;
+      };
+
+      const textCell = (value) => {
+        const cell = document.createElement("td");
+        cell.textContent = value;
+        return cell;
+      };
+
+      const renderRows = (rows) => {
+        tableBody.replaceChildren();
+
+        if (!rows.length) {
+          tableBody.appendChild(emptyRow());
+          return;
+        }
+
+        rows.forEach((item) => {
+          const row = document.createElement("tr");
+          row.appendChild(textCell(item.po_number));
+          row.appendChild(textCell(item.product_name));
+          row.appendChild(countCell(item.pass_count));
+          row.appendChild(countCell(item.reject_count));
+          row.appendChild(countCell(item.alter_count));
+          tableBody.appendChild(row);
+        });
+      };
+
+      const refreshDashboard = async () => {
+        try {
+          const response = await fetch(dashboardUrl, {
+            headers: {
+              "Accept": "application/json",
+            },
+            cache: "no-store",
+          });
+
+          if (response.redirected) {
+            window.location.href = response.url;
+            return;
+          }
+
+          if (!response.ok) {
+            return;
+          }
+
+          const data = await response.json();
+          renderRows(data.rows);
+        } catch (error) {
+          console.error("Could not refresh checker output dashboard.", error);
+        }
+      };
+
+      setInterval(refreshDashboard, refreshIntervalMs);
+    })();
+  </script>
 {% endblock %}
