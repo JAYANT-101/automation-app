@@ -51,8 +51,8 @@ def test_dashboard_data_returns_serialized_rows(
         checkers_output_module,
         "show_checker_output_dashboard",
         lambda: [
-            ("PO-001", "Shirt", 3, 1, 2),
-            ("PO-002", "Pant", 0, 0, 0),
+            ("PO-001", "Shirt", 100, 6, 3, 1, 2),
+            ("PO-002", "Pant", 50, 0, 0, 0, 0),
         ],
     )
 
@@ -64,6 +64,8 @@ def test_dashboard_data_returns_serialized_rows(
             {
                 "po_number": "PO-001",
                 "product_name": "Shirt",
+                "target": 100,
+                "produced": 6,
                 "pass_count": 3,
                 "reject_count": 1,
                 "alter_count": 2,
@@ -71,6 +73,8 @@ def test_dashboard_data_returns_serialized_rows(
             {
                 "po_number": "PO-002",
                 "product_name": "Pant",
+                "target": 50,
+                "produced": 0,
                 "pass_count": 0,
                 "reject_count": 0,
                 "alter_count": 0,
@@ -85,8 +89,8 @@ def test_dashboard_data_fetches_latest_rows_each_request(
         monkeypatch,
 ):
     dashboard_snapshots = [
-        [("PO-001", "Shirt", 1, 0, 0)],
-        [("PO-001", "Shirt", 2, 0, 1)],
+        [("PO-001", "Shirt", 100, 1, 1, 0, 0)],
+        [("PO-001", "Shirt", 100, 3, 2, 0, 1)],
     ]
 
     def fake_show_checker_output_dashboard():
@@ -106,6 +110,8 @@ def test_dashboard_data_fetches_latest_rows_each_request(
     assert first_response.get_json()["rows"][0] == {
         "po_number": "PO-001",
         "product_name": "Shirt",
+        "target": 100,
+        "produced": 1,
         "pass_count": 1,
         "reject_count": 0,
         "alter_count": 0,
@@ -113,6 +119,8 @@ def test_dashboard_data_fetches_latest_rows_each_request(
     assert second_response.get_json()["rows"][0] == {
         "po_number": "PO-001",
         "product_name": "Shirt",
+        "target": 100,
+        "produced": 3,
         "pass_count": 2,
         "reject_count": 0,
         "alter_count": 1,

@@ -11,11 +11,21 @@ def serialize_dashboard_rows(rows):
         {
             "po_number": po_number,
             "product_name": product_name,
+            "target": target,
+            "produced": produced,
             "pass_count": pass_count,
             "reject_count": reject_count,
             "alter_count": alter_count,
         }
-        for po_number, product_name, pass_count, reject_count, alter_count in rows
+        for (
+            po_number,
+            product_name,
+            target,
+            produced,
+            pass_count,
+            reject_count,
+            alter_count,
+        ) in rows
     ]
 
 

@@ -88,12 +88,14 @@ SQL_SHOW_CHECKER_OUTPUT_DASHBOARD = """
 SELECT
     po.po_number,
     po.product_name,
+    po.target,
+    po.produced,
     COALESCE(SUM(CASE WHEN checker_output.field_name = 'pass' THEN 1 ELSE 0 END), 0) AS pass_count,
     COALESCE(SUM(CASE WHEN checker_output.field_name = 'reject' THEN 1 ELSE 0 END), 0) AS reject_count,
     COALESCE(SUM(CASE WHEN checker_output.field_name = 'alter' THEN 1 ELSE 0 END), 0) AS alter_count
 FROM po
 LEFT JOIN checker_output
     ON checker_output.po_id = po.id
-GROUP BY po.id, po.po_number, po.product_name
+GROUP BY po.id, po.po_number, po.product_name, po.target, po.produced
 ORDER BY po.po_number;
 """

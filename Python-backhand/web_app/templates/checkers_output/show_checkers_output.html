@@ -13,6 +13,8 @@
         <tr>
           <th scope="col">PO Number</th>
           <th scope="col">Product Name</th>
+          <th scope="col" class="text-end">Target</th>
+          <th scope="col" class="text-end">Produced</th>
           <th scope="col" class="text-end">Pass</th>
           <th scope="col" class="text-end">Reject</th>
           <th scope="col" class="text-end">Alter</th>
@@ -22,17 +24,19 @@
         id="checker-output-dashboard-body"
         data-dashboard-url="{{ url_for('checkers_output.dashboard_data') }}"
       >
-        {% for po_number, product_name, pass_count, reject_count, alter_count in rows %}
+        {% for po_number, product_name, target, produced, pass_count, reject_count, alter_count in rows %}
           <tr>
             <td>{{ po_number }}</td>
             <td>{{ product_name }}</td>
+            <td class="text-end">{{ target }}</td>
+            <td class="text-end">{{ produced }}</td>
             <td class="text-end">{{ pass_count }}</td>
             <td class="text-end">{{ reject_count }}</td>
             <td class="text-end">{{ alter_count }}</td>
           </tr>
         {% else %}
           <tr>
-            <td colspan="5" class="text-center text-muted py-4">No checker output found.</td>
+            <td colspan="7" class="text-center text-muted py-4">No checker output found.</td>
           </tr>
         {% endfor %}
       </tbody>
@@ -48,7 +52,7 @@
       const emptyRow = () => {
         const row = document.createElement("tr");
         const cell = document.createElement("td");
-        cell.colSpan = 5;
+        cell.colSpan = 7;
         cell.className = "text-center text-muted py-4";
         cell.textContent = "No checker output found.";
         row.appendChild(cell);
@@ -80,6 +84,8 @@
           const row = document.createElement("tr");
           row.appendChild(textCell(item.po_number));
           row.appendChild(textCell(item.product_name));
+          row.appendChild(countCell(item.target));
+          row.appendChild(countCell(item.produced));
           row.appendChild(countCell(item.pass_count));
           row.appendChild(countCell(item.reject_count));
           row.appendChild(countCell(item.alter_count));
