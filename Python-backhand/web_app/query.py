@@ -99,3 +99,20 @@ LEFT JOIN checker_output
 GROUP BY po.id, po.po_number, po.product_name, po.target, po.produced
 ORDER BY po.po_number;
 """
+
+SQL_SHOW_CHECKER_OUTPUT_DASHBOARD_BY_DATE = """
+SELECT
+    po.po_number,
+    po.product_name,
+    po.target,
+    po.produced,
+    COALESCE(SUM(CASE WHEN checker_output.field_name = 'pass' THEN 1 ELSE 0 END), 0) AS pass_count,
+    COALESCE(SUM(CASE WHEN checker_output.field_name = 'reject' THEN 1 ELSE 0 END), 0) AS reject_count,
+    COALESCE(SUM(CASE WHEN checker_output.field_name = 'alter' THEN 1 ELSE 0 END), 0) AS alter_count
+FROM po
+JOIN checker_output
+    ON checker_output.po_id = po.id
+WHERE DATE(checker_output.actual_event_time) = %s
+GROUP BY po.id, po.po_number, po.product_name, po.target, po.produced
+ORDER BY po.po_number;
+"""

@@ -7,6 +7,34 @@
 {% endblock %}
 
 {% block content %}
+  <form
+    class="mb-3"
+    method="get"
+    id="checker-output-filter-form"
+    data-show-all="{{ 'true' if show_all else 'false' }}"
+  >
+    <div class="d-flex gap-2 mb-2">
+      <a class="btn btn-outline-secondary" href="{{ url_for('checkers_output.dashboard', date=today_date) }}">Today</a>
+      <a class="btn btn-outline-secondary" href="{{ url_for('checkers_output.dashboard', view='all') }}">All</a>
+    </div>
+
+    <div class="row g-2 align-items-end">
+      <div class="col-sm-6 col-md-4 col-lg-3">
+        <label class="form-label" for="checker-output-date">Date</label>
+        <input
+          class="form-control"
+          id="checker-output-date"
+          name="date"
+          type="date"
+          value="{{ selected_date }}"
+        >
+      </div>
+      <div class="col-auto">
+        <button class="btn btn-primary" type="submit">Apply</button>
+      </div>
+    </div>
+  </form>
+
   <div class="table-responsive">
     <table class="table table-striped table-hover align-middle">
       <thead>
@@ -46,6 +74,8 @@
   <script>
     (() => {
       const tableBody = document.getElementById("checker-output-dashboard-body");
+      const dateInput = document.getElementById("checker-output-date");
+      const filterForm = document.getElementById("checker-output-filter-form");
       const dashboardUrl = tableBody.dataset.dashboardUrl;
       const refreshIntervalMs = 3000;
 
@@ -95,7 +125,15 @@
 
       const refreshDashboard = async () => {
         try {
-          const response = await fetch(dashboardUrl, {
+          const requestUrl = new URL(dashboardUrl, window.location.origin);
+
+          if (filterForm.dataset.showAll === "true") {
+            requestUrl.searchParams.set("view", "all");
+          } else if (dateInput.value) {
+            requestUrl.searchParams.set("date", dateInput.value);
+          }
+
+          const response = await fetch(requestUrl, {
             headers: {
               "Accept": "application/json",
             },
@@ -117,6 +155,10 @@
           console.error("Could not refresh checker output dashboard.", error);
         }
       };
+
+      dateInput.addEventListener("change", () => {
+        dateInput.form.submit();
+      });
 
       setInterval(refreshDashboard, refreshIntervalMs);
     })();
