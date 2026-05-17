@@ -60,7 +60,17 @@
             <td class="text-end">{{ produced }}</td>
             <td class="text-end">{{ pass_count }}</td>
             <td class="text-end">{{ reject_count }}</td>
-            <td class="text-end">{{ alter_count }}</td>
+            <td class="text-end">
+              {% if show_all %}
+                <a href="{{ url_for('checkers_output.defect_details', po_number=po_number, view='all') }}">
+                  {{ alter_count }}
+                </a>
+              {% else %}
+                <a href="{{ url_for('checkers_output.defect_details', po_number=po_number, date=selected_date) }}">
+                  {{ alter_count }}
+                </a>
+              {% endif %}
+            </td>
           </tr>
         {% else %}
           <tr>
@@ -96,6 +106,16 @@
         return cell;
       };
 
+      const linkCountCell = (value, href) => {
+        const cell = document.createElement("td");
+        const link = document.createElement("a");
+        cell.className = "text-end";
+        link.href = href;
+        link.textContent = value;
+        cell.appendChild(link);
+        return cell;
+      };
+
       const textCell = (value) => {
         const cell = document.createElement("td");
         cell.textContent = value;
@@ -118,7 +138,7 @@
           row.appendChild(countCell(item.produced));
           row.appendChild(countCell(item.pass_count));
           row.appendChild(countCell(item.reject_count));
-          row.appendChild(countCell(item.alter_count));
+          row.appendChild(linkCountCell(item.alter_count, item.defect_details_url));
           tableBody.appendChild(row);
         });
       };

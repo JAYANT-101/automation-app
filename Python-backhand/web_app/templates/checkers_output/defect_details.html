@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}Defect Details{% endblock %}
+
+{% block header %}
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+    <h1>Defect Details</h1>
+    <a class="btn btn-outline-secondary" href="{{ dashboard_url }}">Back to Checker Output</a>
+  </div>
+{% endblock %}
+
+{% block content %}
+  <p class="text-muted mb-3">
+    PO Number: <span class="fw-semibold">{{ po_number }}</span>
+    {% if show_all %}
+      <span class="ms-2">Showing all dates</span>
+    {% else %}
+      <span class="ms-2">Showing {{ selected_date }}</span>
+    {% endif %}
+  </p>
+
+  <div class="table-responsive mb-4">
+    <table class="table table-striped table-hover align-middle">
+      <thead>
+        <tr>
+          <th scope="col">Product Name</th>
+          <th scope="col">PO Number</th>
+          {% for defect_name in defect_names %}
+            <th scope="col" class="text-end">{{ defect_name }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in table_rows %}
+          <tr>
+            <td>{{ row.product_name }}</td>
+            <td>{{ row.po_number }}</td>
+            {% for defect_name in defect_names %}
+              <td class="text-end">{{ row.defects.get(defect_name, 0) }}</td>
+            {% endfor %}
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="{{ defect_names|length + 2 }}" class="text-center text-muted py-4">
+              No defects found for this PO.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 col-lg-4">
+      <h2 class="h5">Top Three Defects</h2>
+      {% if chart_labels %}
+        <canvas
+          id="top-defects-chart"
+          width="360"
+          height="360"
+          aria-label="Top three defects pie chart"
+          role="img"
+        ></canvas>
+      {% else %}
+        <p class="text-muted">No defect chart data available.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if chart_labels %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      (() => {
+        const chartElement = document.getElementById("top-defects-chart");
+        const labels = {{ chart_labels|tojson }};
+        const counts = {{ chart_counts|tojson }};
+
+        new Chart(chartElement, {
+          type: "pie",
+          data: {
+            labels,
+            datasets: [{
+              data: counts,
+              backgroundColor: ["#0d6efd", "#198754", "#dc3545"],
+            }],
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                position: "bottom",
+              },
+            },
+          },
+        });
+      })();
+    </script>
+  {% endif %}
+{% endblock %}
