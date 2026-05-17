@@ -9,7 +9,7 @@ __pycache__/
 .pytest_cache/
 .coverage
 htmlcov/
-
+Python-backhand/scripts
 dist/
 build/
 *.egg-info/
