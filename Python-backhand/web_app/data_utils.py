@@ -2,6 +2,7 @@ from web_app.query import *
 from dotenv import load_dotenv
 import  os
 import DBcm
+from typing import Optional
 #Loding all the details to connet to the databse
 load_dotenv()
 db_details = {
@@ -135,3 +136,23 @@ def delete_po_by_number(product_name: str, po_number: str)-> None:
 def update_po_target(product_name: str, po_number: str, target: int)-> None:
     with DBcm.UseDatabase(db_details) as db:
         db.execute(SQL_UPDATE_PO_TARGET, (target, product_name, po_number,))
+
+def increment_po_produced(po_id: int)-> None:
+    with DBcm.UseDatabase(db_details) as db:
+        db.execute(SQL_INCREMENT_PO_PRODUCED, (po_id,))
+
+def show_checker_output_dashboard(selected_date: Optional[str] = None)-> list[tuple]:
+    with DBcm.UseDatabase(db_details) as db:
+        if selected_date:
+            db.execute(SQL_SHOW_CHECKER_OUTPUT_DASHBOARD_BY_DATE, (selected_date,))
+        else:
+            db.execute(SQL_SHOW_CHECKER_OUTPUT_DASHBOARD)
+        return db.fetchall()
+
+def get_po_defect_counts(po_number: str, selected_date: Optional[str] = None)-> list[tuple]:
+    with DBcm.UseDatabase(db_details) as db:
+        if selected_date:
+            db.execute(SQL_SHOW_PO_DEFECT_COUNTS_BY_DATE, (po_number, selected_date,))
+        else:
+            db.execute(SQL_SHOW_PO_DEFECT_COUNTS, (po_number,))
+        return db.fetchall()

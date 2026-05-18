@@ -14,7 +14,7 @@
   <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
       <div class="container">
-        <a class="navbar-brand fw-semibold" href="{% if g.admin %}{{ url_for('po.upload_po') }}{% else %}{{ url_for('auth.login') }}{% endif %}">PO Automation</a>
+        <a class="navbar-brand fw-semibold" href="{% if g.admin %}{{ url_for('front') }}{% else %}{{ url_for('auth.login') }}{% endif %}">PO Automation</a>
         <button
           class="navbar-toggler"
           type="button"
@@ -35,6 +35,9 @@
               </li>
               <li class="nav-item">
                 <a class="nav-link {% if request.endpoint in ['po.update_po', 'update_po'] %}active{% endif %}" href="{{ url_for('update_po') }}">Update PO</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'checkers_output.dashboard' %}active{% endif %}" href="{{ url_for('checkers_output.dashboard') }}">Checker Output</a>
               </li>
               <li class="nav-item">
                 <a class="nav-link {% if request.endpoint == 'users.add_user' %}active{% endif %}" href="{{ url_for('users.add_user') }}">Add User</a>

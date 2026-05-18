@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from web_app.data_utils import insert_checker_output
+from web_app.data_utils import increment_po_produced, insert_checker_output
 
 
 bp = Blueprint("get_checkr_data", __name__, url_prefix="/checker-output")
@@ -72,6 +72,8 @@ def receive_checker_output():
 
     try:
         insert_checker_output(**validated_data)
+        if validated_data["field_name"] == "pass":
+            increment_po_produced(validated_data["po_id"])
     except Exception as e:
         return jsonify({
             "status": "error",

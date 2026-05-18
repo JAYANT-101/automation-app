@@ -6,6 +6,7 @@ from . import users
 from . import po
 from . import index
 from . import get_checkr_data
+from . import checkers_output
 
 load_dotenv()
 def create_app(test_config=None):
@@ -50,6 +51,9 @@ def create_app(test_config=None):
 
     #This registers the blueprint for checker output API data
     app.register_blueprint(get_checkr_data.bp)
+
+    #This registers the blueprint for checker output dashboard
+    app.register_blueprint(checkers_output.bp)
 
     #This registers the bluprint of index
     app.register_blueprint(index.bp)
