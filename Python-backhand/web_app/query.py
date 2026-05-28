@@ -147,3 +147,24 @@ WHERE po.po_number = %s
 GROUP BY po.product_name, po.po_number, defect_name
 ORDER BY defect_count DESC, defect_name;
 """
+
+SQL_SHOW_ALL_PO_DEFECT_COUNTS = """
+SELECT
+    COALESCE(NULLIF(checker_output.defect_name, ''), 'Unknown') AS defect_name,
+    COUNT(*) AS defect_count
+FROM checker_output
+WHERE checker_output.field_name = 'alter'
+GROUP BY defect_name
+ORDER BY defect_count DESC, defect_name;
+"""
+
+SQL_SHOW_ALL_PO_DEFECT_COUNTS_BY_DATE = """
+SELECT
+    COALESCE(NULLIF(checker_output.defect_name, ''), 'Unknown') AS defect_name,
+    COUNT(*) AS defect_count
+FROM checker_output
+WHERE checker_output.field_name = 'alter'
+    AND DATE(checker_output.actual_event_time) = %s
+GROUP BY defect_name
+ORDER BY defect_count DESC, defect_name;
+"""

@@ -8,9 +8,10 @@
 
 {% block content %}
   <form
-    class="mb-3"
+    class="checker-output-filter mb-4"
     method="get"
     id="checker-output-filter-form"
+    data-selected-date="{{ selected_date }}"
     data-show-all="{{ 'true' if show_all else 'false' }}"
   >
     <div class="d-flex gap-2 mb-2">
@@ -29,11 +30,32 @@
           value="{{ selected_date }}"
         >
       </div>
-      <div class="col-auto">
-        <button class="btn btn-primary" type="submit">Apply</button>
+      <div class="col-sm-auto">
+        <button class="btn btn-primary checker-output-apply-button" type="submit">Apply</button>
       </div>
     </div>
   </form>
+
+  <div class="row g-3 mb-4" aria-label="Checker output totals">
+    <div class="col-sm-6 col-lg-4">
+      <div class="checker-output-total-card border rounded-3 p-3 h-100">
+        <div class="text-muted small">Pass</div>
+        <div class="fs-3 fw-semibold text-success" id="checker-output-total-pass">{{ status_totals.pass_count }}</div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-4">
+      <div class="checker-output-total-card border rounded-3 p-3 h-100">
+        <div class="text-muted small">Reject</div>
+        <div class="fs-3 fw-semibold text-danger" id="checker-output-total-reject">{{ status_totals.reject_count }}</div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-4">
+      <div class="checker-output-total-card border rounded-3 p-3 h-100">
+        <div class="text-muted small">Alter</div>
+        <div class="fs-3 fw-semibold text-warning" id="checker-output-total-alter">{{ status_totals.alter_count }}</div>
+      </div>
+    </div>
+  </div>
 
   <div class="table-responsive">
     <table class="table table-striped table-hover align-middle">
@@ -81,6 +103,29 @@
     </table>
   </div>
 
+  <section class="border-top mt-4 pt-4">
+    <h2 class="h5 mb-3">Top Three Defects Across All POs</h2>
+    <div class="row">
+      <div class="col-md-6 col-lg-4">
+        <canvas
+          id="all-po-top-defects-chart"
+          class="{{ 'd-none' if not chart_labels else '' }}"
+          width="360"
+          height="360"
+          aria-label="Top three defects across all PO numbers pie chart"
+          role="img"
+        ></canvas>
+        <p
+          class="text-muted {{ 'd-none' if chart_labels else '' }}"
+          id="all-po-top-defects-empty"
+        >
+          No defect chart data available.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     (() => {
       const tableBody = document.getElementById("checker-output-dashboard-body");
@@ -88,6 +133,13 @@
       const filterForm = document.getElementById("checker-output-filter-form");
       const dashboardUrl = tableBody.dataset.dashboardUrl;
       const refreshIntervalMs = 3000;
+      const totalPassElement = document.getElementById("checker-output-total-pass");
+      const totalRejectElement = document.getElementById("checker-output-total-reject");
+      const totalAlterElement = document.getElementById("checker-output-total-alter");
+      const chartElement = document.getElementById("all-po-top-defects-chart");
+      const chartEmptyElement = document.getElementById("all-po-top-defects-empty");
+      const chartColors = ["#0d6efd", "#198754", "#dc3545"];
+      let topDefectsChart = null;
 
       const emptyRow = () => {
         const row = document.createElement("tr");
@@ -143,14 +195,70 @@
         });
       };
 
+      const renderStatusTotals = (statusTotals = {}) => {
+        totalPassElement.textContent = statusTotals.pass_count ?? 0;
+        totalRejectElement.textContent = statusTotals.reject_count ?? 0;
+        totalAlterElement.textContent = statusTotals.alter_count ?? 0;
+      };
+
+      const renderTopDefectsChart = (labels, counts) => {
+        labels = labels || [];
+        counts = counts || [];
+
+        if (!chartElement || typeof Chart === "undefined") {
+          return;
+        }
+
+        if (!labels.length) {
+          chartElement.classList.add("d-none");
+          chartEmptyElement.classList.remove("d-none");
+
+          if (topDefectsChart) {
+            topDefectsChart.destroy();
+            topDefectsChart = null;
+          }
+
+          return;
+        }
+
+        chartElement.classList.remove("d-none");
+        chartEmptyElement.classList.add("d-none");
+
+        if (topDefectsChart) {
+          topDefectsChart.data.labels = labels;
+          topDefectsChart.data.datasets[0].data = counts;
+          topDefectsChart.update();
+          return;
+        }
+
+        topDefectsChart = new Chart(chartElement, {
+          type: "pie",
+          data: {
+            labels,
+            datasets: [{
+              data: counts,
+              backgroundColor: chartColors,
+            }],
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                position: "bottom",
+              },
+            },
+          },
+        });
+      };
+
       const refreshDashboard = async () => {
         try {
           const requestUrl = new URL(dashboardUrl, window.location.origin);
 
           if (filterForm.dataset.showAll === "true") {
             requestUrl.searchParams.set("view", "all");
-          } else if (dateInput.value) {
-            requestUrl.searchParams.set("date", dateInput.value);
+          } else if (filterForm.dataset.selectedDate) {
+            requestUrl.searchParams.set("date", filterForm.dataset.selectedDate);
           }
 
           const response = await fetch(requestUrl, {
@@ -171,15 +279,14 @@
 
           const data = await response.json();
           renderRows(data.rows);
+          renderStatusTotals(data.status_totals);
+          renderTopDefectsChart(data.chart_labels, data.chart_counts);
         } catch (error) {
           console.error("Could not refresh checker output dashboard.", error);
         }
       };
 
-      dateInput.addEventListener("change", () => {
-        dateInput.form.submit();
-      });
-
+      renderTopDefectsChart({{ chart_labels|tojson }}, {{ chart_counts|tojson }});
       setInterval(refreshDashboard, refreshIntervalMs);
     })();
   </script>

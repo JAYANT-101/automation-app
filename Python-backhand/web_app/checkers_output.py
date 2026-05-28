@@ -3,7 +3,11 @@ from datetime import date, datetime
 from flask import Blueprint, jsonify, render_template, request, url_for
 
 from web_app.auth import login_required
-from web_app.data_utils import get_po_defect_counts, show_checker_output_dashboard
+from web_app.data_utils import (
+    get_all_po_defect_counts,
+    get_po_defect_counts,
+    show_checker_output_dashboard,
+)
 
 bp = Blueprint("checkers_output", __name__, url_prefix="/checkers-output")
 
@@ -62,6 +66,27 @@ def serialize_dashboard_rows(rows):
     ]
 
 
+def calculate_status_totals(rows):
+    pass_count = sum(int(row[4] or 0) for row in rows)
+    reject_count = sum(int(row[5] or 0) for row in rows)
+    alter_count = sum(int(row[6] or 0) for row in rows)
+
+    return {
+        "pass_count": pass_count,
+        "reject_count": reject_count,
+        "alter_count": alter_count,
+    }
+
+
+def prepare_top_defects_chart(rows):
+    top_defects = sorted(rows, key=lambda item: item[1], reverse=True)[:3]
+
+    return {
+        "chart_labels": [defect_name for defect_name, _ in top_defects],
+        "chart_counts": [int(defect_count or 0) for _, defect_count in top_defects],
+    }
+
+
 def prepare_defect_dashboard(rows):
     defect_names = []
     defect_name_set = set()
@@ -99,12 +124,17 @@ def prepare_defect_dashboard(rows):
 @login_required
 def dashboard():
     selected_date, show_all = get_dashboard_filter()
+    rows = show_checker_output_dashboard(selected_date)
+    defect_chart = prepare_top_defects_chart(get_all_po_defect_counts(selected_date))
+
     return render_template(
         "checkers_output/show_checkers_output.html",
-        rows=show_checker_output_dashboard(selected_date),
+        rows=rows,
+        status_totals=calculate_status_totals(rows),
         selected_date=selected_date or "",
         show_all=show_all,
         today_date=date.today().isoformat(),
+        **defect_chart,
     )
 
 
@@ -131,10 +161,15 @@ def defect_details(po_number):
 @login_required
 def dashboard_data():
     selected_date, show_all = get_dashboard_filter()
+    rows = show_checker_output_dashboard(selected_date)
+    defect_chart = prepare_top_defects_chart(get_all_po_defect_counts(selected_date))
+
     return jsonify(
         {
-            "rows": serialize_dashboard_rows(show_checker_output_dashboard(selected_date)),
+            "rows": serialize_dashboard_rows(rows),
+            "status_totals": calculate_status_totals(rows),
             "selected_date": selected_date,
             "show_all": show_all,
+            **defect_chart,
         }
     )

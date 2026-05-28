@@ -20,3 +20,10 @@ hr { border: none; border-top: 1px solid lightgray; }
 input.danger { color: #cc2f2e; }
 input[type=submit] { align-self: start; min-width: 10em; }
 .content table caption { caption-side: top; }
+.checker-output-filter .form-control { margin-bottom: 0; }
+.checker-output-filter .btn { margin-bottom: 0; }
+.checker-output-apply-button { min-width: 7rem; }
+.checker-output-total-card { background: #f8fafc; }
+@media (max-width: 575.98px) {
+  .checker-output-apply-button { width: 100%; }
+}

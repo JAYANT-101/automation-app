@@ -156,3 +156,11 @@ def get_po_defect_counts(po_number: str, selected_date: Optional[str] = None)-> 
         else:
             db.execute(SQL_SHOW_PO_DEFECT_COUNTS, (po_number,))
         return db.fetchall()
+
+def get_all_po_defect_counts(selected_date: Optional[str] = None)-> list[tuple]:
+    with DBcm.UseDatabase(db_details) as db:
+        if selected_date:
+            db.execute(SQL_SHOW_ALL_PO_DEFECT_COUNTS_BY_DATE, (selected_date,))
+        else:
+            db.execute(SQL_SHOW_ALL_PO_DEFECT_COUNTS)
+        return db.fetchall()
