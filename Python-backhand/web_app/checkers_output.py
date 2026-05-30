@@ -35,6 +35,21 @@ def get_filter_query_args(selected_date, show_all):
     return {"date": selected_date}
 
 
+def as_count(value):
+    return int(value or 0)
+
+
+def calculate_total_processed(pass_count, reject_count, alter_count):
+    return as_count(pass_count) + as_count(reject_count) + as_count(alter_count)
+
+
+def calculate_defect_percentage(alter_count, total_processed):
+    if not total_processed:
+        return 0
+
+    return round((as_count(alter_count) / total_processed) * 100, 2)
+
+
 def serialize_dashboard_rows(rows):
     selected_date, show_all = get_dashboard_filter()
     filter_query_args = get_filter_query_args(selected_date, show_all)
@@ -44,7 +59,11 @@ def serialize_dashboard_rows(rows):
             "po_number": po_number,
             "product_name": product_name,
             "target": target,
-            "produced": produced,
+            "total_processed": calculate_total_processed(
+                pass_count,
+                reject_count,
+                alter_count,
+            ),
             "pass_count": pass_count,
             "reject_count": reject_count,
             "alter_count": alter_count,
@@ -58,7 +77,7 @@ def serialize_dashboard_rows(rows):
             po_number,
             product_name,
             target,
-            produced,
+            _,
             pass_count,
             reject_count,
             alter_count,
@@ -67,11 +86,21 @@ def serialize_dashboard_rows(rows):
 
 
 def calculate_status_totals(rows):
-    pass_count = sum(int(row[4] or 0) for row in rows)
-    reject_count = sum(int(row[5] or 0) for row in rows)
-    alter_count = sum(int(row[6] or 0) for row in rows)
+    pass_count = sum(as_count(row[4]) for row in rows)
+    reject_count = sum(as_count(row[5]) for row in rows)
+    alter_count = sum(as_count(row[6]) for row in rows)
+    total_processed = calculate_total_processed(
+        pass_count,
+        reject_count,
+        alter_count,
+    )
 
     return {
+        "total_processed": total_processed,
+        "defect_percentage": calculate_defect_percentage(
+            alter_count,
+            total_processed,
+        ),
         "pass_count": pass_count,
         "reject_count": reject_count,
         "alter_count": alter_count,

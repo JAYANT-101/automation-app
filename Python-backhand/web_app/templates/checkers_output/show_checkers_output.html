@@ -37,22 +37,34 @@
   </form>
 
   <div class="row g-3 mb-4" aria-label="Checker output totals">
-    <div class="col-sm-6 col-lg-4">
+    <div class="col-sm-6 col-lg">
+      <div class="checker-output-total-card border rounded-3 p-3 h-100">
+        <div class="text-muted small">Total Processed</div>
+        <div class="fs-3 fw-semibold" id="checker-output-total-processed">{{ status_totals.total_processed }}</div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg">
       <div class="checker-output-total-card border rounded-3 p-3 h-100">
         <div class="text-muted small">Pass</div>
         <div class="fs-3 fw-semibold text-success" id="checker-output-total-pass">{{ status_totals.pass_count }}</div>
       </div>
     </div>
-    <div class="col-sm-6 col-lg-4">
+    <div class="col-sm-6 col-lg">
       <div class="checker-output-total-card border rounded-3 p-3 h-100">
         <div class="text-muted small">Reject</div>
         <div class="fs-3 fw-semibold text-danger" id="checker-output-total-reject">{{ status_totals.reject_count }}</div>
       </div>
     </div>
-    <div class="col-sm-6 col-lg-4">
+    <div class="col-sm-6 col-lg">
       <div class="checker-output-total-card border rounded-3 p-3 h-100">
         <div class="text-muted small">Alter</div>
         <div class="fs-3 fw-semibold text-warning" id="checker-output-total-alter">{{ status_totals.alter_count }}</div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg">
+      <div class="checker-output-total-card border rounded-3 p-3 h-100">
+        <div class="text-muted small">Defect %</div>
+        <div class="fs-3 fw-semibold text-info" id="checker-output-defect-percentage">{{ status_totals.defect_percentage }}%</div>
       </div>
     </div>
   </div>
@@ -64,7 +76,7 @@
           <th scope="col">PO Number</th>
           <th scope="col">Product Name</th>
           <th scope="col" class="text-end">Target</th>
-          <th scope="col" class="text-end">Produced</th>
+          <th scope="col" class="text-end">Total Processed</th>
           <th scope="col" class="text-end">Pass</th>
           <th scope="col" class="text-end">Reject</th>
           <th scope="col" class="text-end">Alter</th>
@@ -74,12 +86,12 @@
         id="checker-output-dashboard-body"
         data-dashboard-url="{{ url_for('checkers_output.dashboard_data') }}"
       >
-        {% for po_number, product_name, target, produced, pass_count, reject_count, alter_count in rows %}
+        {% for po_number, product_name, target, _, pass_count, reject_count, alter_count in rows %}
           <tr>
             <td>{{ po_number }}</td>
             <td>{{ product_name }}</td>
             <td class="text-end">{{ target }}</td>
-            <td class="text-end">{{ produced }}</td>
+            <td class="text-end">{{ (pass_count or 0) + (reject_count or 0) + (alter_count or 0) }}</td>
             <td class="text-end">{{ pass_count }}</td>
             <td class="text-end">{{ reject_count }}</td>
             <td class="text-end">
@@ -133,6 +145,8 @@
       const filterForm = document.getElementById("checker-output-filter-form");
       const dashboardUrl = tableBody.dataset.dashboardUrl;
       const refreshIntervalMs = 3000;
+      const totalProcessedElement = document.getElementById("checker-output-total-processed");
+      const defectPercentageElement = document.getElementById("checker-output-defect-percentage");
       const totalPassElement = document.getElementById("checker-output-total-pass");
       const totalRejectElement = document.getElementById("checker-output-total-reject");
       const totalAlterElement = document.getElementById("checker-output-total-alter");
@@ -187,7 +201,7 @@
           row.appendChild(textCell(item.po_number));
           row.appendChild(textCell(item.product_name));
           row.appendChild(countCell(item.target));
-          row.appendChild(countCell(item.produced));
+          row.appendChild(countCell(item.total_processed));
           row.appendChild(countCell(item.pass_count));
           row.appendChild(countCell(item.reject_count));
           row.appendChild(linkCountCell(item.alter_count, item.defect_details_url));
@@ -196,6 +210,8 @@
       };
 
       const renderStatusTotals = (statusTotals = {}) => {
+        totalProcessedElement.textContent = statusTotals.total_processed ?? 0;
+        defectPercentageElement.textContent = `${statusTotals.defect_percentage ?? 0}%`;
         totalPassElement.textContent = statusTotals.pass_count ?? 0;
         totalRejectElement.textContent = statusTotals.reject_count ?? 0;
         totalAlterElement.textContent = statusTotals.alter_count ?? 0;

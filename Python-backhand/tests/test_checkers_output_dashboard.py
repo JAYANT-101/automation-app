@@ -53,8 +53,8 @@ def test_dashboard_data_returns_serialized_rows(
         checkers_output_module,
         "show_checker_output_dashboard",
         lambda selected_date=None: [
-            ("PO-001", "Shirt", 100, 6, 3, 1, 2),
-            ("PO-002", "Pant", 50, 0, 0, 0, 0),
+            ("PO-001", "Shirt", 100, 99, 3, 1, 2),
+            ("PO-002", "Pant", 50, 7, 0, 0, 0),
         ],
     )
     monkeypatch.setattr(
@@ -77,7 +77,7 @@ def test_dashboard_data_returns_serialized_rows(
                 "po_number": "PO-001",
                 "product_name": "Shirt",
                 "target": 100,
-                "produced": 6,
+                "total_processed": 6,
                 "pass_count": 3,
                 "reject_count": 1,
                 "alter_count": 2,
@@ -87,7 +87,7 @@ def test_dashboard_data_returns_serialized_rows(
                 "po_number": "PO-002",
                 "product_name": "Pant",
                 "target": 50,
-                "produced": 0,
+                "total_processed": 0,
                 "pass_count": 0,
                 "reject_count": 0,
                 "alter_count": 0,
@@ -95,6 +95,8 @@ def test_dashboard_data_returns_serialized_rows(
             },
         ],
         "status_totals": {
+            "total_processed": 6,
+            "defect_percentage": 33.33,
             "pass_count": 3,
             "reject_count": 1,
             "alter_count": 2,
@@ -112,8 +114,8 @@ def test_dashboard_data_fetches_latest_rows_each_request(
         monkeypatch,
 ):
     dashboard_snapshots = [
-        [("PO-001", "Shirt", 100, 1, 1, 0, 0)],
-        [("PO-001", "Shirt", 100, 3, 2, 0, 1)],
+        [("PO-001", "Shirt", 100, 99, 1, 0, 0)],
+        [("PO-001", "Shirt", 100, 42, 2, 0, 1)],
     ]
 
     def fake_show_checker_output_dashboard(selected_date=None):
@@ -139,13 +141,15 @@ def test_dashboard_data_fetches_latest_rows_each_request(
         "po_number": "PO-001",
         "product_name": "Shirt",
         "target": 100,
-        "produced": 1,
+        "total_processed": 1,
         "pass_count": 1,
         "reject_count": 0,
         "alter_count": 0,
         "defect_details_url": "/checkers-output/defects/PO-001?view=all",
     }
     assert first_response.get_json()["status_totals"] == {
+        "total_processed": 1,
+        "defect_percentage": 0.0,
         "pass_count": 1,
         "reject_count": 0,
         "alter_count": 0,
@@ -154,13 +158,15 @@ def test_dashboard_data_fetches_latest_rows_each_request(
         "po_number": "PO-001",
         "product_name": "Shirt",
         "target": 100,
-        "produced": 3,
+        "total_processed": 3,
         "pass_count": 2,
         "reject_count": 0,
         "alter_count": 1,
         "defect_details_url": "/checkers-output/defects/PO-001?view=all",
     }
     assert second_response.get_json()["status_totals"] == {
+        "total_processed": 3,
+        "defect_percentage": 33.33,
         "pass_count": 2,
         "reject_count": 0,
         "alter_count": 1,
@@ -174,12 +180,26 @@ def test_serialize_dashboard_rows_returns_empty_list(client, checkers_output_mod
 
 def test_calculate_status_totals(checkers_output_module):
     assert checkers_output_module.calculate_status_totals([
-        ("PO-001", "Shirt", 100, 6, 3, 1, 2),
-        ("PO-002", "Pant", 50, 4, 1, 2, 1),
+        ("PO-001", "Shirt", 100, 99, 3, 1, 2),
+        ("PO-002", "Pant", 50, 42, 1, 2, 1),
     ]) == {
+        "total_processed": 10,
+        "defect_percentage": 30.0,
         "pass_count": 4,
         "reject_count": 3,
         "alter_count": 3,
+    }
+
+
+def test_calculate_status_totals_handles_zero_processed(checkers_output_module):
+    assert checkers_output_module.calculate_status_totals([
+        ("PO-001", "Shirt", 100, 99, 0, 0, 0),
+    ]) == {
+        "total_processed": 0,
+        "defect_percentage": 0,
+        "pass_count": 0,
+        "reject_count": 0,
+        "alter_count": 0,
     }
 
 
