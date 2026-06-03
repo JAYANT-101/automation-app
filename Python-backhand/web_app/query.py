@@ -58,6 +58,8 @@ SQL_GET_ADMIN_DATA_BY_ID = 'SELECT * FROM admin WHERE id = %s'
 #
 SQL_INSERT_USER = 'INSERT INTO users (username, password) VALUES (%s, %s)'
 #
+SQL_GET_USER_INFO_BY_USERNAME = 'SELECT id, username, password FROM users WHERE username = %s'
+#
 SQL_SELECT_ALL_USERS_INFO = 'SELECT id,username FROM users'
 #
 SQL_DELETE_USER_BY_USERNAME = 'DELETE FROM users WHERE username=%s;'

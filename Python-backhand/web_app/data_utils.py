@@ -68,6 +68,12 @@ def insert_user_in_users_table(username:str, password)-> None:
     with DBcm.UseDatabase(db_details) as db:
         db.execute(SQL_INSERT_USER, (username, password,))
 
+def get_user_info(username: str)-> list[tuple]:
+    """Get checker app user data by username."""
+    with DBcm.UseDatabase(db_details) as db:
+        db.execute(SQL_GET_USER_INFO_BY_USERNAME, (username,))
+        return db.fetchall()
+
 def get_all_users_data():
     with DBcm.UseDatabase(db_details) as db:
         db.execute(SQL_SELECT_ALL_USERS_INFO)
