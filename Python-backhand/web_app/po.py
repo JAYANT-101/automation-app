@@ -87,7 +87,7 @@ def po_numbers(product_name):
     return jsonify({
         "po_numbers": [
             {"po_number": po_number, "target": target}
-            for po_number, target in po_rows
+            for _, po_number, target in po_rows
         ]
     })
 

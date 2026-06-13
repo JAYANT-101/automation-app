@@ -226,7 +226,7 @@ def test_po_numbers_returns_product_po_numbers(
     monkeypatch.setattr(
         po_module,
         "get_po_numbers_by_product",
-        lambda product_name: [("PO-001", 100), ("PO-002", 50)],
+        lambda product_name: [(1, "PO-001", 100), (2, "PO-002", 50)],
     )
 
     response = client.get("/po/po_numbers/Shirt")

@@ -40,9 +40,10 @@ def po_numbers():
         "product_type": product_type,
         "po_numbers": [
             {
+                "po_id": po_id,
                 "po_number": po_number,
                 "target": target,
             }
-            for po_number, target in po_rows
+            for po_id, po_number, target in po_rows
         ],
     })

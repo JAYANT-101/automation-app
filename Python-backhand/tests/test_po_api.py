@@ -63,7 +63,7 @@ def test_po_numbers_returns_selected_product_type_pos(
 
     def fake_get_po_numbers_by_product(product_type):
         seen_product_types.append(product_type)
-        return [("PO-001", 100), ("PO-002", 50)]
+        return [(1, "PO-001", 100), (2, "PO-002", 50)]
 
     monkeypatch.setattr(
         po_api_module,
@@ -78,10 +78,12 @@ def test_po_numbers_returns_selected_product_type_pos(
         "product_type": "Shirt",
         "po_numbers": [
             {
+                "po_id": 1,
                 "po_number": "PO-001",
                 "target": 100,
             },
             {
+                "po_id": 2,
                 "po_number": "PO-002",
                 "target": 50,
             },
