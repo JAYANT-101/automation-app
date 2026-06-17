@@ -107,16 +107,16 @@ SELECT
     po.po_number,
     po.product_name,
     po.target,
-    po.produced,
+    checker_output.line,
     COALESCE(SUM(CASE WHEN checker_output.field_name = 'pass' THEN 1 ELSE 0 END), 0) AS pass_count,
     COALESCE(SUM(CASE WHEN checker_output.field_name = 'reject' THEN 1 ELSE 0 END), 0) AS reject_count,
     COALESCE(SUM(CASE WHEN checker_output.field_name = 'alter' THEN 1 ELSE 0 END), 0) AS alter_count
-FROM po
-JOIN checker_output
+FROM checker_output
+JOIN po
     ON checker_output.po_id = po.id
 WHERE DATE(checker_output.recorded_at) = %s
-GROUP BY po.id, po.po_number, po.product_name, po.target, po.produced
-ORDER BY po.po_number;
+GROUP BY checker_output.line, po.id, po.po_number, po.product_name, po.target
+ORDER BY checker_output.line, po.po_number;
 """
 
 SQL_SHOW_PO_DEFECT_COUNTS = """
@@ -138,6 +138,7 @@ SQL_SHOW_PO_DEFECT_COUNTS_BY_DATE = """
 SELECT
     po.product_name,
     po.po_number,
+    checker_output.line,
     COALESCE(NULLIF(checker_output.defect_name, ''), 'Unknown') AS defect_name,
     COUNT(*) AS defect_count
 FROM po
@@ -146,7 +147,25 @@ JOIN checker_output
 WHERE po.po_number = %s
     AND checker_output.field_name = 'alter'
     AND DATE(checker_output.recorded_at) = %s
-GROUP BY po.product_name, po.po_number, defect_name
+GROUP BY po.product_name, po.po_number, checker_output.line, defect_name
+ORDER BY checker_output.line, defect_count DESC, defect_name;
+"""
+
+SQL_SHOW_PO_DEFECT_COUNTS_BY_DATE_AND_LINE = """
+SELECT
+    po.product_name,
+    po.po_number,
+    checker_output.line,
+    COALESCE(NULLIF(checker_output.defect_name, ''), 'Unknown') AS defect_name,
+    COUNT(*) AS defect_count
+FROM po
+JOIN checker_output
+    ON checker_output.po_id = po.id
+WHERE po.po_number = %s
+    AND checker_output.field_name = 'alter'
+    AND DATE(checker_output.recorded_at) = %s
+    AND checker_output.line = %s
+GROUP BY po.product_name, po.po_number, checker_output.line, defect_name
 ORDER BY defect_count DESC, defect_name;
 """
 

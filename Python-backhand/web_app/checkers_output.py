@@ -50,12 +50,28 @@ def calculate_defect_percentage(alter_count, total_processed):
     return round((as_count(alter_count) / total_processed) * 100, 2)
 
 
+def build_defect_details_url(po_number, filter_query_args, line_no=None):
+    url_kwargs = {"po_number": po_number, **filter_query_args}
+    if line_no is not None:
+        url_kwargs["line"] = line_no
+    return url_for("checkers_output.defect_details", **url_kwargs)
+
+
 def serialize_dashboard_rows(rows):
     selected_date, show_all = get_dashboard_filter()
     filter_query_args = get_filter_query_args(selected_date, show_all)
 
-    return [
-        {
+    serialized_rows = []
+    for (
+        po_number,
+        product_name,
+        target,
+        line_or_produced,
+        pass_count,
+        reject_count,
+        alter_count,
+    ) in rows:
+        row = {
             "po_number": po_number,
             "product_name": product_name,
             "target": target,
@@ -67,22 +83,19 @@ def serialize_dashboard_rows(rows):
             "pass_count": pass_count,
             "reject_count": reject_count,
             "alter_count": alter_count,
-            "defect_details_url": url_for(
-                "checkers_output.defect_details",
-                po_number=po_number,
-                **filter_query_args,
-            ),
         }
-        for (
+        line_no = None
+        if not show_all:
+            line_no = line_or_produced
+            row["line_no"] = line_no
+        row["defect_details_url"] = build_defect_details_url(
             po_number,
-            product_name,
-            target,
-            _,
-            pass_count,
-            reject_count,
-            alter_count,
-        ) in rows
-    ]
+            filter_query_args,
+            line_no,
+        )
+        serialized_rows.append(row)
+
+    return serialized_rows
 
 
 def calculate_status_totals(rows):
@@ -116,28 +129,47 @@ def prepare_top_defects_chart(rows):
     }
 
 
-def prepare_defect_dashboard(rows):
+def prepare_defect_dashboard(rows, show_line=False):
     defect_names = []
     defect_name_set = set()
     table_rows_by_po = {}
     chart_counts = {}
 
-    for product_name, po_number, defect_name, defect_count in rows:
-        key = (product_name, po_number)
+    if show_line:
+        for product_name, po_number, line_no, defect_name, defect_count in rows:
+            key = (product_name, po_number, line_no)
 
-        if defect_name not in defect_name_set:
-            defect_name_set.add(defect_name)
-            defect_names.append(defect_name)
+            if defect_name not in defect_name_set:
+                defect_name_set.add(defect_name)
+                defect_names.append(defect_name)
 
-        if key not in table_rows_by_po:
-            table_rows_by_po[key] = {
-                "product_name": product_name,
-                "po_number": po_number,
-                "defects": {},
-            }
+            if key not in table_rows_by_po:
+                table_rows_by_po[key] = {
+                    "product_name": product_name,
+                    "po_number": po_number,
+                    "line_no": line_no,
+                    "defects": {},
+                }
 
-        table_rows_by_po[key]["defects"][defect_name] = defect_count
-        chart_counts[defect_name] = chart_counts.get(defect_name, 0) + defect_count
+            table_rows_by_po[key]["defects"][defect_name] = defect_count
+            chart_counts[defect_name] = chart_counts.get(defect_name, 0) + defect_count
+    else:
+        for product_name, po_number, defect_name, defect_count in rows:
+            key = (product_name, po_number)
+
+            if defect_name not in defect_name_set:
+                defect_name_set.add(defect_name)
+                defect_names.append(defect_name)
+
+            if key not in table_rows_by_po:
+                table_rows_by_po[key] = {
+                    "product_name": product_name,
+                    "po_number": po_number,
+                    "defects": {},
+                }
+
+            table_rows_by_po[key]["defects"][defect_name] = defect_count
+            chart_counts[defect_name] = chart_counts.get(defect_name, 0) + defect_count
 
     top_defects = sorted(chart_counts.items(), key=lambda item: item[1], reverse=True)[:3]
 
@@ -171,13 +203,18 @@ def dashboard():
 @login_required
 def defect_details(po_number):
     selected_date, show_all = get_dashboard_filter()
-    defect_data = prepare_defect_dashboard(get_po_defect_counts(po_number, selected_date))
+    selected_line = request.args.get("line", type=int)
+    defect_data = prepare_defect_dashboard(
+        get_po_defect_counts(po_number, selected_date, selected_line),
+        show_line=not show_all,
+    )
 
     return render_template(
         "checkers_output/defect_details.html",
         po_number=po_number,
         selected_date=selected_date or "",
         show_all=show_all,
+        selected_line=selected_line,
         dashboard_url=url_for(
             "checkers_output.dashboard",
             **get_filter_query_args(selected_date, show_all),

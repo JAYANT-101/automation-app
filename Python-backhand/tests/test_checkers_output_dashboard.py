@@ -213,3 +213,102 @@ def test_prepare_top_defects_chart_limits_to_top_three(checkers_output_module):
         "chart_labels": ["Broken Stitch", "Shade Issue", "Oil Mark"],
         "chart_counts": [4, 3, 2],
     }
+
+
+def test_dashboard_data_includes_line_numbers_for_date_filter(
+        client,
+        checkers_output_module,
+        monkeypatch,
+):
+    monkeypatch.setattr(
+        checkers_output_module,
+        "show_checker_output_dashboard",
+        lambda selected_date=None: [
+            ("PO-001", "Shirt", 100, 1, 3, 1, 2),
+            ("PO-001", "Shirt", 100, 2, 2, 0, 1),
+            ("PO-002", "Pant", 50, 1, 1, 0, 0),
+        ],
+    )
+    monkeypatch.setattr(
+        checkers_output_module,
+        "get_all_po_defect_counts",
+        lambda selected_date=None: [("Broken Stitch", 3)],
+    )
+
+    response = client.get("/checkers-output/data?date=2026-06-17")
+
+    assert response.status_code == 200
+    assert response.get_json() == {
+        "rows": [
+            {
+                "line_no": 1,
+                "po_number": "PO-001",
+                "product_name": "Shirt",
+                "target": 100,
+                "total_processed": 6,
+                "pass_count": 3,
+                "reject_count": 1,
+                "alter_count": 2,
+                "defect_details_url": "/checkers-output/defects/PO-001?date=2026-06-17&line=1",
+            },
+            {
+                "line_no": 2,
+                "po_number": "PO-001",
+                "product_name": "Shirt",
+                "target": 100,
+                "total_processed": 3,
+                "pass_count": 2,
+                "reject_count": 0,
+                "alter_count": 1,
+                "defect_details_url": "/checkers-output/defects/PO-001?date=2026-06-17&line=2",
+            },
+            {
+                "line_no": 1,
+                "po_number": "PO-002",
+                "product_name": "Pant",
+                "target": 50,
+                "total_processed": 1,
+                "pass_count": 1,
+                "reject_count": 0,
+                "alter_count": 0,
+                "defect_details_url": "/checkers-output/defects/PO-002?date=2026-06-17&line=1",
+            },
+        ],
+        "status_totals": {
+            "total_processed": 10,
+            "defect_percentage": 30.0,
+            "pass_count": 6,
+            "reject_count": 1,
+            "alter_count": 3,
+        },
+        "chart_labels": ["Broken Stitch"],
+        "chart_counts": [3],
+        "selected_date": "2026-06-17",
+        "show_all": False,
+    }
+
+
+def test_prepare_defect_dashboard_groups_rows_by_line(checkers_output_module):
+    assert checkers_output_module.prepare_defect_dashboard([
+        ("Shirt", "PO-001", 1, "Broken Stitch", 2),
+        ("Shirt", "PO-001", 1, "Oil Mark", 1),
+        ("Shirt", "PO-001", 2, "Broken Stitch", 1),
+    ], show_line=True) == {
+        "defect_names": ["Broken Stitch", "Oil Mark"],
+        "table_rows": [
+            {
+                "product_name": "Shirt",
+                "po_number": "PO-001",
+                "line_no": 1,
+                "defects": {"Broken Stitch": 2, "Oil Mark": 1},
+            },
+            {
+                "product_name": "Shirt",
+                "po_number": "PO-001",
+                "line_no": 2,
+                "defects": {"Broken Stitch": 1},
+            },
+        ],
+        "chart_labels": ["Broken Stitch", "Oil Mark"],
+        "chart_counts": [3, 1],
+    }

@@ -73,6 +73,9 @@
     <table class="table table-striped table-hover align-middle">
       <thead>
         <tr>
+          {% if not show_all %}
+            <th scope="col">Line No</th>
+          {% endif %}
           <th scope="col">PO Number</th>
           <th scope="col">Product Name</th>
           <th scope="col" class="text-end">Target</th>
@@ -86,8 +89,11 @@
         id="checker-output-dashboard-body"
         data-dashboard-url="{{ url_for('checkers_output.dashboard_data') }}"
       >
-        {% for po_number, product_name, target, _, pass_count, reject_count, alter_count in rows %}
+        {% for po_number, product_name, target, line_or_produced, pass_count, reject_count, alter_count in rows %}
           <tr>
+            {% if not show_all %}
+              <td>{{ line_or_produced }}</td>
+            {% endif %}
             <td>{{ po_number }}</td>
             <td>{{ product_name }}</td>
             <td class="text-end">{{ target }}</td>
@@ -100,7 +106,7 @@
                   {{ alter_count }}
                 </a>
               {% else %}
-                <a href="{{ url_for('checkers_output.defect_details', po_number=po_number, date=selected_date) }}">
+                <a href="{{ url_for('checkers_output.defect_details', po_number=po_number, date=selected_date, line=line_or_produced) }}">
                   {{ alter_count }}
                 </a>
               {% endif %}
@@ -108,7 +114,7 @@
           </tr>
         {% else %}
           <tr>
-            <td colspan="7" class="text-center text-muted py-4">No checker output found.</td>
+            <td colspan="{{ 8 if not show_all else 7 }}" class="text-center text-muted py-4">No checker output found.</td>
           </tr>
         {% endfor %}
       </tbody>
@@ -154,11 +160,14 @@
       const chartEmptyElement = document.getElementById("all-po-top-defects-empty");
       const chartColors = ["#0d6efd", "#198754", "#dc3545"];
       let topDefectsChart = null;
+      let showAll = filterForm.dataset.showAll === "true";
+
+      const tableColumnCount = () => (showAll ? 7 : 8);
 
       const emptyRow = () => {
         const row = document.createElement("tr");
         const cell = document.createElement("td");
-        cell.colSpan = 7;
+        cell.colSpan = tableColumnCount();
         cell.className = "text-center text-muted py-4";
         cell.textContent = "No checker output found.";
         row.appendChild(cell);
@@ -198,6 +207,9 @@
 
         rows.forEach((item) => {
           const row = document.createElement("tr");
+          if (!showAll) {
+            row.appendChild(textCell(item.line_no));
+          }
           row.appendChild(textCell(item.po_number));
           row.appendChild(textCell(item.product_name));
           row.appendChild(countCell(item.target));
@@ -294,6 +306,7 @@
           }
 
           const data = await response.json();
+          showAll = data.show_all;
           renderRows(data.rows);
           renderStatusTotals(data.status_totals);
           renderTopDefectsChart(data.chart_labels, data.chart_counts);
