@@ -129,6 +129,47 @@ def prepare_top_defects_chart(rows):
     }
 
 
+def prepare_line_defect_chart(rows):
+    line_totals = {}
+
+    for (
+        _po_number,
+        _product_name,
+        _target,
+        line_no,
+        pass_count,
+        reject_count,
+        alter_count,
+    ) in rows:
+        totals = line_totals.setdefault(
+            line_no,
+            {"alter_count": 0, "total_processed": 0},
+        )
+        totals["alter_count"] += as_count(alter_count)
+        totals["total_processed"] += calculate_total_processed(
+            pass_count,
+            reject_count,
+            alter_count,
+        )
+
+    sorted_lines = sorted(line_totals.items())
+
+    return {
+        "line_chart_labels": [f"Line {line_no}" for line_no, _ in sorted_lines],
+        "line_chart_percentages": [
+            calculate_defect_percentage(totals["alter_count"], totals["total_processed"])
+            for _, totals in sorted_lines
+        ],
+    }
+
+
+def empty_line_defect_chart():
+    return {
+        "line_chart_labels": [],
+        "line_chart_percentages": [],
+    }
+
+
 def prepare_defect_dashboard(rows, show_line=False):
     defect_names = []
     defect_name_set = set()
@@ -187,6 +228,11 @@ def dashboard():
     selected_date, show_all = get_dashboard_filter()
     rows = show_checker_output_dashboard(selected_date)
     defect_chart = prepare_top_defects_chart(get_all_po_defect_counts(selected_date))
+    line_chart = (
+        empty_line_defect_chart()
+        if show_all
+        else prepare_line_defect_chart(rows)
+    )
 
     return render_template(
         "checkers_output/show_checkers_output.html",
@@ -196,6 +242,7 @@ def dashboard():
         show_all=show_all,
         today_date=date.today().isoformat(),
         **defect_chart,
+        **line_chart,
     )
 
 
@@ -229,6 +276,11 @@ def dashboard_data():
     selected_date, show_all = get_dashboard_filter()
     rows = show_checker_output_dashboard(selected_date)
     defect_chart = prepare_top_defects_chart(get_all_po_defect_counts(selected_date))
+    line_chart = (
+        empty_line_defect_chart()
+        if show_all
+        else prepare_line_defect_chart(rows)
+    )
 
     return jsonify(
         {
@@ -237,5 +289,6 @@ def dashboard_data():
             "selected_date": selected_date,
             "show_all": show_all,
             **defect_chart,
+            **line_chart,
         }
     )

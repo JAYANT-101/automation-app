@@ -103,6 +103,8 @@ def test_dashboard_data_returns_serialized_rows(
         },
         "chart_labels": ["Broken Stitch", "Oil Mark", "Shade Issue"],
         "chart_counts": [4, 2, 1],
+        "line_chart_labels": [],
+        "line_chart_percentages": [],
         "selected_date": None,
         "show_all": True,
     }
@@ -283,6 +285,8 @@ def test_dashboard_data_includes_line_numbers_for_date_filter(
         },
         "chart_labels": ["Broken Stitch"],
         "chart_counts": [3],
+        "line_chart_labels": ["Line 1", "Line 2"],
+        "line_chart_percentages": [28.57, 33.33],
         "selected_date": "2026-06-17",
         "show_all": False,
     }
@@ -311,4 +315,24 @@ def test_prepare_defect_dashboard_groups_rows_by_line(checkers_output_module):
         ],
         "chart_labels": ["Broken Stitch", "Oil Mark"],
         "chart_counts": [3, 1],
+    }
+
+
+def test_prepare_line_defect_chart_aggregates_multiple_pos_per_line(
+        checkers_output_module,
+):
+    assert checkers_output_module.prepare_line_defect_chart([
+        ("PO-001", "Shirt", 100, 1, 3, 1, 2),
+        ("PO-001", "Shirt", 100, 2, 2, 0, 1),
+        ("PO-002", "Pant", 50, 1, 1, 0, 0),
+    ]) == {
+        "line_chart_labels": ["Line 1", "Line 2"],
+        "line_chart_percentages": [28.57, 33.33],
+    }
+
+
+def test_prepare_line_defect_chart_returns_empty_for_no_rows(checkers_output_module):
+    assert checkers_output_module.prepare_line_defect_chart([]) == {
+        "line_chart_labels": [],
+        "line_chart_percentages": [],
     }
