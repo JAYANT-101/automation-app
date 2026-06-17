@@ -10,6 +10,7 @@
     <input type="file" name="file" id="file"  required>
     <input type="submit" value="submit">
   </form>
+{% if data is not none %}
 <table>
   <caption>Po Details</caption>
   <thead>
@@ -29,4 +30,5 @@
   {% endfor %}
   </tbody>
 </table>
+{% endif %}
 {% endblock %}

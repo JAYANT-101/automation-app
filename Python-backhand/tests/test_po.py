@@ -36,7 +36,6 @@ def po_module(monkeypatch):
     data_utils.is_product_in_table = lambda product_name: [(0,)]
     data_utils.insert_product = lambda product_name: None
     data_utils.insert_po = lambda product_name, po_number, target: None
-    data_utils.show_po_data = lambda: []
     data_utils.update_po_target = lambda product_name, po_number, target: None
 
     pandas = types.ModuleType("pandas")
@@ -132,6 +131,40 @@ def test_data_entry_inserts_missing_products_and_pos(
     ]
 
 
+def test_insert_new_po_data_returns_only_inserted_rows(
+        po_module,
+        monkeypatch,
+):
+    inserted_products = []
+    inserted_pos = []
+    existing_pos = {"PO-OLD"}
+
+    monkeypatch.setattr(po_module, "is_product_in_table", lambda product: [(1,)])
+    monkeypatch.setattr(
+        po_module,
+        "is_po_in_table",
+        lambda po_number: [(1,)] if po_number in existing_pos else [(0,)],
+    )
+    monkeypatch.setattr(po_module, "insert_product", inserted_products.append)
+    monkeypatch.setattr(
+        po_module,
+        "insert_po",
+        lambda product_name, po_number, target: inserted_pos.append(
+            (product_name, po_number, target)
+        ),
+    )
+
+    message, added_rows = po_module.insert_new_po_data([
+        ("PO-OLD", "Old Shirt", 100),
+        ("PO-NEW", "New Shirt", 50),
+    ])
+
+    assert message == "1 po rows added"
+    assert added_rows == [("New Shirt", "PO-NEW", 50)]
+    assert inserted_products == []
+    assert inserted_pos == [("New Shirt", "PO-NEW", 50)]
+
+
 def test_data_entry_skips_existing_product_and_po(
         po_module,
         monkeypatch,
@@ -157,23 +190,15 @@ def test_data_entry_skips_existing_product_and_po(
     assert inserted_pos == []
 
 
-def test_upload_po_get_renders_existing_po_rows(
+def test_upload_po_get_hides_existing_po_rows(
         client,
-        po_module,
-        monkeypatch,
 ):
-    monkeypatch.setattr(
-        po_module,
-        "show_po_data",
-        lambda: [("Shirt", "PO-001", 100)],
-    )
-
     response = client.get("/po/upload_po")
 
     assert response.status_code == 200
-    assert b"PO-001" in response.data
-    assert b"Shirt" in response.data
-    assert b"100" in response.data
+    assert b"PO-001" not in response.data
+    assert b"Shirt" not in response.data
+    assert b"100" not in response.data
 
 
 def test_upload_po_rejects_wrong_file_type(client):
@@ -202,7 +227,11 @@ def test_upload_po_extracts_data_and_saves_rows(
         return [("PO-001", "Shirt", 100)]
 
     monkeypatch.setattr(po_module, "extract_data", fake_extract_data)
-    monkeypatch.setattr(po_module, "data_entry", lambda po_data: "1 po rows added")
+    monkeypatch.setattr(
+        po_module,
+        "insert_new_po_data",
+        lambda po_data: ("1 po rows added", [("Shirt", "PO-001", 100)]),
+    )
 
     response = client.post(
         "/po/upload_po",
@@ -214,8 +243,46 @@ def test_upload_po_extracts_data_and_saves_rows(
 
     assert response.status_code == 200
     assert b"1 po rows added" in response.data
+    assert b"PO-001" in response.data
+    assert b"Shirt" in response.data
+    assert b"100" in response.data
     assert len(seen_saved_files) == 1
     assert not seen_saved_files[0].exists()
+
+
+def test_upload_po_only_renders_inserted_rows(
+        client,
+        po_module,
+        monkeypatch,
+):
+    monkeypatch.setattr(
+        po_module,
+        "extract_data",
+        lambda saved_file: [
+            ("PO-OLD", "Old Shirt", 100),
+            ("PO-NEW", "New Shirt", 50),
+        ],
+    )
+    monkeypatch.setattr(
+        po_module,
+        "insert_new_po_data",
+        lambda po_data: ("1 po rows added", [("New Shirt", "PO-NEW", 50)]),
+    )
+
+    response = client.post(
+        "/po/upload_po",
+        data={
+            "file": (BytesIO(b"excel bytes"), "orders.xlsx"),
+        },
+        content_type="multipart/form-data",
+    )
+
+    assert response.status_code == 200
+    assert b"1 po rows added" in response.data
+    assert b"PO-NEW" in response.data
+    assert b"New Shirt" in response.data
+    assert b"PO-OLD" not in response.data
+    assert b"Old Shirt" not in response.data
 
 
 def test_po_numbers_returns_product_po_numbers(
@@ -226,7 +293,7 @@ def test_po_numbers_returns_product_po_numbers(
     monkeypatch.setattr(
         po_module,
         "get_po_numbers_by_product",
-        lambda product_name: [(1, "PO-001", 100), (2, "PO-002", 50)],
+        lambda product_name: [(1, "PO-001", 100, 0), (2, "PO-002", 50, 0)],
     )
 
     response = client.get("/po/po_numbers/Shirt")

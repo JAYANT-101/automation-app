@@ -76,9 +76,11 @@ SQL_INSERT_CHECKER_OUTPUT = 'INSERT INTO checker_output (user_id, line, po_id, f
 #
 SQL_SHOW_PO_TABLE = 'SELECT product_name,po_number,target FROM po'
 #
-SQL_GET_ALL_PRODUCT_NAMES = 'SELECT product_name FROM Product ORDER BY product_name;'
+SQL_SHOW_PO_DETAILS = 'SELECT product_name, po_number, target, produced FROM po ORDER BY product_name, po_number;'
 #
-SQL_GET_PO_NUMBERS_BY_PRODUCT = 'SELECT id, po_number, target FROM po WHERE product_name = %s ORDER BY po_number;'
+SQL_GET_ALL_PRODUCT_NAMES = 'SELECT DISTINCT Product.product_name FROM Product JOIN po ON Product.product_name = po.product_name WHERE po.target > po.produced ORDER BY product_name;'
+#
+SQL_GET_PO_NUMBERS_BY_PRODUCT = 'SELECT id, po_number, target, produced FROM po WHERE product_name = %s ORDER BY po_number;'
 #
 SQL_DELETE_PO_BY_NUMBER = 'DELETE FROM po WHERE product_name = %s AND po_number = %s;'
 #

@@ -42,8 +42,8 @@ def po_numbers():
             {
                 "po_id": po_id,
                 "po_number": po_number,
-                "target": target,
+                "target": target - produced,
             }
-            for po_id, po_number, target in po_rows
+            for po_id, po_number, target, produced in po_rows if target > produced
         ],
     })

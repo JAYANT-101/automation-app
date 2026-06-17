@@ -4,6 +4,7 @@ from flask import Flask
 from . import auth
 from . import users
 from . import po
+from . import po_details
 from . import po_api
 from . import index
 from . import get_checkr_data
@@ -50,6 +51,9 @@ def create_app(test_config=None):
         view_func=po.update_po,
         methods=('GET', 'POST'),
     )
+
+    #This registers the blueprint of po details
+    app.register_blueprint(po_details.bp)
 
     #This registers the blueprint for frontend PO selection data
     app.register_blueprint(po_api.bp)

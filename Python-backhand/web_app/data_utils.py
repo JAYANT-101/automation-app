@@ -125,6 +125,11 @@ def show_po_data()-> list[tuple]:
         db.execute(SQL_SHOW_PO_TABLE)
         return db.fetchall()
 
+def show_po_details()-> list[tuple]:
+    with DBcm.UseDatabase(db_details) as db:
+        db.execute(SQL_SHOW_PO_DETAILS)
+        return db.fetchall()
+
 def get_all_product_names()-> list[str]:
     with DBcm.UseDatabase(db_details) as db:
         db.execute(SQL_GET_ALL_PRODUCT_NAMES)
