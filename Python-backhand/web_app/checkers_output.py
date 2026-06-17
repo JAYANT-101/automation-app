@@ -170,11 +170,35 @@ def empty_line_defect_chart():
     }
 
 
-def prepare_defect_dashboard(rows, show_line=False):
+def prepare_defect_dashboard(rows, show_line=False, dashboard_rows=None):
     defect_names = []
     defect_name_set = set()
     table_rows_by_po = {}
     chart_counts = {}
+    dashboard_totals = {}
+
+    for (
+        row_po_number,
+        product_name,
+        _target,
+        line_or_produced,
+        pass_count,
+        reject_count,
+        alter_count,
+    ) in dashboard_rows or []:
+        if show_line:
+            key = (product_name, row_po_number, line_or_produced)
+        else:
+            key = (product_name, row_po_number)
+
+        dashboard_totals[key] = {
+            "alter_count": as_count(alter_count),
+            "total_processed": calculate_total_processed(
+                pass_count,
+                reject_count,
+                alter_count,
+            ),
+        }
 
     if show_line:
         for product_name, po_number, line_no, defect_name, defect_count in rows:
@@ -213,10 +237,27 @@ def prepare_defect_dashboard(rows, show_line=False):
             chart_counts[defect_name] = chart_counts.get(defect_name, 0) + defect_count
 
     top_defects = sorted(chart_counts.items(), key=lambda item: item[1], reverse=True)[:3]
+    table_rows = list(table_rows_by_po.values())
+
+    if dashboard_rows is not None:
+        for row in table_rows:
+            if show_line:
+                key = (row["product_name"], row["po_number"], row["line_no"])
+            else:
+                key = (row["product_name"], row["po_number"])
+
+            row_totals = dashboard_totals.get(
+                key,
+                {"alter_count": 0, "total_processed": 0},
+            )
+            row["defect_percentage"] = calculate_defect_percentage(
+                row_totals["alter_count"],
+                row_totals["total_processed"],
+            )
 
     return {
         "defect_names": defect_names,
-        "table_rows": list(table_rows_by_po.values()),
+        "table_rows": table_rows,
         "chart_labels": [defect_name for defect_name, _ in top_defects],
         "chart_counts": [defect_count for _, defect_count in top_defects],
     }
@@ -251,9 +292,17 @@ def dashboard():
 def defect_details(po_number):
     selected_date, show_all = get_dashboard_filter()
     selected_line = request.args.get("line", type=int)
+    show_line = not show_all
+    dashboard_rows = [
+        row
+        for row in show_checker_output_dashboard(selected_date)
+        if row[0] == po_number
+        and (not show_line or selected_line is None or row[3] == selected_line)
+    ]
     defect_data = prepare_defect_dashboard(
         get_po_defect_counts(po_number, selected_date, selected_line),
-        show_line=not show_all,
+        show_line=show_line,
+        dashboard_rows=dashboard_rows,
     )
 
     return render_template(

@@ -318,6 +318,38 @@ def test_prepare_defect_dashboard_groups_rows_by_line(checkers_output_module):
     }
 
 
+def test_prepare_defect_dashboard_calculates_defect_percentage(
+        checkers_output_module,
+):
+    assert checkers_output_module.prepare_defect_dashboard(
+        [
+            ("Shirt", "PO-001", 1, "Broken Stitch", 2),
+            ("Shirt", "PO-001", 1, "Oil Mark", 1),
+            ("Shirt", "PO-001", 2, "Broken Stitch", 1),
+        ],
+        show_line=True,
+        dashboard_rows=[
+            ("PO-001", "Shirt", 100, 1, 2, 1, 3),
+            ("PO-001", "Shirt", 100, 2, 2, 0, 1),
+        ],
+    )["table_rows"] == [
+        {
+            "product_name": "Shirt",
+            "po_number": "PO-001",
+            "line_no": 1,
+            "defects": {"Broken Stitch": 2, "Oil Mark": 1},
+            "defect_percentage": 50.0,
+        },
+        {
+            "product_name": "Shirt",
+            "po_number": "PO-001",
+            "line_no": 2,
+            "defects": {"Broken Stitch": 1},
+            "defect_percentage": 33.33,
+        },
+    ]
+
+
 def test_prepare_line_defect_chart_aggregates_multiple_pos_per_line(
         checkers_output_module,
 ):

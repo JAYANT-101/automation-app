@@ -34,6 +34,7 @@
           {% for defect_name in defect_names %}
             <th scope="col" class="text-end">{{ defect_name }}</th>
           {% endfor %}
+          <th scope="col" class="text-end">Defect %</th>
         </tr>
       </thead>
       <tbody>
@@ -47,10 +48,11 @@
             {% for defect_name in defect_names %}
               <td class="text-end">{{ row.defects.get(defect_name, 0) }}</td>
             {% endfor %}
+            <td class="text-end">{{ row.defect_percentage }}%</td>
           </tr>
         {% else %}
           <tr>
-            <td colspan="{{ defect_names|length + (3 if not show_all else 2) }}" class="text-center text-muted py-4">
+            <td colspan="{{ defect_names|length + (4 if not show_all else 3) }}" class="text-center text-muted py-4">
               No defects found for this PO.
             </td>
           </tr>
