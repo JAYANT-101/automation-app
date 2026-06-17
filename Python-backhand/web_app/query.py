@@ -119,6 +119,68 @@ GROUP BY checker_output.line, po.id, po.po_number, po.product_name, po.target
 ORDER BY checker_output.line, po.po_number;
 """
 
+SQL_SHOW_CHECKER_REPORT_BY_DATE = """
+SELECT
+    checker_output.line,
+    po.product_name,
+    po.po_number,
+    COUNT(DISTINCT checker_output.user_id) AS checker_count,
+    COALESCE(SUM(CASE
+        WHEN checker_output.field_name = 'pass'
+            AND TIME(checker_output.actual_event_time) >= '09:00:00'
+            AND TIME(checker_output.actual_event_time) < '10:00:00'
+        THEN 1 ELSE 0
+    END), 0) AS pass_9_10,
+    COALESCE(SUM(CASE
+        WHEN checker_output.field_name = 'pass'
+            AND TIME(checker_output.actual_event_time) >= '10:00:00'
+            AND TIME(checker_output.actual_event_time) < '11:00:00'
+        THEN 1 ELSE 0
+    END), 0) AS pass_10_11,
+    COALESCE(SUM(CASE
+        WHEN checker_output.field_name = 'pass'
+            AND TIME(checker_output.actual_event_time) >= '11:00:00'
+            AND TIME(checker_output.actual_event_time) < '12:15:00'
+        THEN 1 ELSE 0
+    END), 0) AS pass_11_1215,
+    COALESCE(SUM(CASE
+        WHEN checker_output.field_name = 'pass'
+            AND TIME(checker_output.actual_event_time) >= '12:15:00'
+            AND TIME(checker_output.actual_event_time) < '13:45:00'
+        THEN 1 ELSE 0
+    END), 0) AS pass_1215_145,
+    COALESCE(SUM(CASE
+        WHEN checker_output.field_name = 'pass'
+            AND TIME(checker_output.actual_event_time) >= '13:45:00'
+            AND TIME(checker_output.actual_event_time) < '14:45:00'
+        THEN 1 ELSE 0
+    END), 0) AS pass_145_245,
+    COALESCE(SUM(CASE
+        WHEN checker_output.field_name = 'pass'
+            AND TIME(checker_output.actual_event_time) >= '14:45:00'
+            AND TIME(checker_output.actual_event_time) < '16:00:00'
+        THEN 1 ELSE 0
+    END), 0) AS pass_245_4,
+    COALESCE(SUM(CASE
+        WHEN checker_output.field_name = 'pass'
+            AND TIME(checker_output.actual_event_time) >= '16:00:00'
+            AND TIME(checker_output.actual_event_time) < '17:00:00'
+        THEN 1 ELSE 0
+    END), 0) AS pass_4_5,
+    COALESCE(SUM(CASE
+        WHEN checker_output.field_name = 'pass'
+            AND TIME(checker_output.actual_event_time) >= '17:00:00'
+            AND TIME(checker_output.actual_event_time) < '18:00:00'
+        THEN 1 ELSE 0
+    END), 0) AS pass_5_6
+FROM checker_output
+JOIN po
+    ON checker_output.po_id = po.id
+WHERE DATE(checker_output.actual_event_time) = %s
+GROUP BY checker_output.line, po.id, po.product_name, po.po_number
+ORDER BY checker_output.line, po.po_number;
+"""
+
 SQL_SHOW_PO_DEFECT_COUNTS = """
 SELECT
     po.product_name,

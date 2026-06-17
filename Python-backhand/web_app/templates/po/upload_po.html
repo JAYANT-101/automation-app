@@ -10,23 +10,25 @@
     <input type="file" name="file" id="file"  required>
     <input type="submit" value="submit">
   </form>
-<table>
-  <caption>Po Details</caption>
-  <thead>
-    <tr>
-      <th>PO_NUMBER</th>
-      <th>PRODUCT_NAME</th>
-      <th>TARGET</th>
-    </tr>
-  </thead>
-  <tbody>
-  {% for product_name, po_number, target in data %}
-    <tr>
-      <td>{{po_number}}</td>
-      <td>{{product_name}}</td>
-      <td>{{target}}</td>
-    </tr>
-  {% endfor %}
-  </tbody>
-</table>
+  <div class="table-responsive mt-4">
+    <table class="table table-bordered border-dark table-striped table-hover align-middle text-center">
+      <caption class="caption-top">Po Details</caption>
+      <thead>
+        <tr>
+          <th scope="col">PO_NUMBER</th>
+          <th scope="col">PRODUCT_NAME</th>
+          <th scope="col">TARGET</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for product_name, po_number, target in data %}
+        <tr>
+          <td>{{po_number}}</td>
+          <td>{{product_name}}</td>
+          <td>{{target}}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
 {% endblock %}

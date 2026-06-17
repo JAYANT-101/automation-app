@@ -155,6 +155,11 @@ def show_checker_output_dashboard(selected_date: Optional[str] = None)-> list[tu
             db.execute(SQL_SHOW_CHECKER_OUTPUT_DASHBOARD)
         return db.fetchall()
 
+def get_checker_report(selected_date: str)-> list[tuple]:
+    with DBcm.UseDatabase(db_details) as db:
+        db.execute(SQL_SHOW_CHECKER_REPORT_BY_DATE, (selected_date,))
+        return db.fetchall()
+
 def get_po_defect_counts(
         po_number: str,
         selected_date: Optional[str] = None,

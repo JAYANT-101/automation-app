@@ -5,11 +5,23 @@ from flask import Blueprint, jsonify, render_template, request, url_for
 from web_app.auth import login_required
 from web_app.data_utils import (
     get_all_po_defect_counts,
+    get_checker_report,
     get_po_defect_counts,
     show_checker_output_dashboard,
 )
 
 bp = Blueprint("checkers_output", __name__, url_prefix="/checkers-output")
+
+CHECKER_REPORT_INTERVAL_LABELS = [
+    "9.00 - 10.00",
+    "10.00 - 11.00",
+    "11.00 - 12.15",
+    "12.15 - 1.45",
+    "1.45 - 2.45",
+    "2.45 - 4.00",
+    "4.00 - 5.00",
+    "5.00 - 6.00",
+]
 
 
 def get_dashboard_filter():
@@ -96,6 +108,30 @@ def serialize_dashboard_rows(rows):
         serialized_rows.append(row)
 
     return serialized_rows
+
+
+def serialize_checker_report_rows(rows):
+    report_rows = []
+
+    for line_no, product_name, po_number, checker_count, *interval_counts in rows:
+        interval_counts = [as_count(count) for count in interval_counts]
+        report_rows.append({
+            "line_no": line_no,
+            "product_name": product_name,
+            "po_number": po_number,
+            "checkers": as_count(checker_count),
+            "interval_counts": interval_counts,
+            "total_pass_count": sum(interval_counts),
+        })
+
+    return report_rows
+
+
+def get_checker_report_rows(selected_date, show_all):
+    if show_all or not selected_date:
+        return []
+
+    return serialize_checker_report_rows(get_checker_report(selected_date))
 
 
 def calculate_status_totals(rows):
@@ -268,6 +304,7 @@ def prepare_defect_dashboard(rows, show_line=False, dashboard_rows=None):
 def dashboard():
     selected_date, show_all = get_dashboard_filter()
     rows = show_checker_output_dashboard(selected_date)
+    checker_report_rows = get_checker_report_rows(selected_date, show_all)
     defect_chart = prepare_top_defects_chart(get_all_po_defect_counts(selected_date))
     line_chart = (
         empty_line_defect_chart()
@@ -279,6 +316,8 @@ def dashboard():
         "checkers_output/show_checkers_output.html",
         rows=rows,
         status_totals=calculate_status_totals(rows),
+        checker_report_interval_labels=CHECKER_REPORT_INTERVAL_LABELS,
+        checker_report_rows=checker_report_rows,
         selected_date=selected_date or "",
         show_all=show_all,
         today_date=date.today().isoformat(),
@@ -324,6 +363,7 @@ def defect_details(po_number):
 def dashboard_data():
     selected_date, show_all = get_dashboard_filter()
     rows = show_checker_output_dashboard(selected_date)
+    checker_report_rows = get_checker_report_rows(selected_date, show_all)
     defect_chart = prepare_top_defects_chart(get_all_po_defect_counts(selected_date))
     line_chart = (
         empty_line_defect_chart()
@@ -335,6 +375,7 @@ def dashboard_data():
         {
             "rows": serialize_dashboard_rows(rows),
             "status_totals": calculate_status_totals(rows),
+            "checker_report_rows": checker_report_rows,
             "selected_date": selected_date,
             "show_all": show_all,
             **defect_chart,

@@ -18,6 +18,7 @@ def checkers_output_module(monkeypatch):
 
     data_utils = types.ModuleType("web_app.data_utils")
     data_utils.get_all_po_defect_counts = lambda selected_date=None: []
+    data_utils.get_checker_report = lambda selected_date: []
     data_utils.get_po_defect_counts = lambda po_number, selected_date=None: []
     data_utils.show_checker_output_dashboard = lambda selected_date=None: []
 
@@ -101,6 +102,7 @@ def test_dashboard_data_returns_serialized_rows(
             "reject_count": 1,
             "alter_count": 2,
         },
+        "checker_report_rows": [],
         "chart_labels": ["Broken Stitch", "Oil Mark", "Shade Issue"],
         "chart_counts": [4, 2, 1],
         "line_chart_labels": [],
@@ -236,6 +238,15 @@ def test_dashboard_data_includes_line_numbers_for_date_filter(
         "get_all_po_defect_counts",
         lambda selected_date=None: [("Broken Stitch", 3)],
     )
+    monkeypatch.setattr(
+        checkers_output_module,
+        "get_checker_report",
+        lambda selected_date: [
+            (1, "Shirt", "PO-001", 4, 1, 2, 0, 0, 0, 0, 0, 0),
+            (2, "Shirt", "PO-001", 2, 0, 1, 1, 0, 0, 0, 0, 0),
+            (1, "Pant", "PO-002", 1, 0, 0, 0, 0, 0, 0, 0, 1),
+        ],
+    )
 
     response = client.get("/checkers-output/data?date=2026-06-17")
 
@@ -285,6 +296,32 @@ def test_dashboard_data_includes_line_numbers_for_date_filter(
         },
         "chart_labels": ["Broken Stitch"],
         "chart_counts": [3],
+        "checker_report_rows": [
+            {
+                "line_no": 1,
+                "product_name": "Shirt",
+                "po_number": "PO-001",
+                "checkers": 4,
+                "interval_counts": [1, 2, 0, 0, 0, 0, 0, 0],
+                "total_pass_count": 3,
+            },
+            {
+                "line_no": 2,
+                "product_name": "Shirt",
+                "po_number": "PO-001",
+                "checkers": 2,
+                "interval_counts": [0, 1, 1, 0, 0, 0, 0, 0],
+                "total_pass_count": 2,
+            },
+            {
+                "line_no": 1,
+                "product_name": "Pant",
+                "po_number": "PO-002",
+                "checkers": 1,
+                "interval_counts": [0, 0, 0, 0, 0, 0, 0, 1],
+                "total_pass_count": 1,
+            },
+        ],
         "line_chart_labels": ["Line 1", "Line 2"],
         "line_chart_percentages": [28.57, 33.33],
         "selected_date": "2026-06-17",

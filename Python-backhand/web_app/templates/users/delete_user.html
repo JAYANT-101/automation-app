@@ -10,19 +10,21 @@
     <input name="username" id="username" required>
     <input type="submit" value="submit">
   </form>
-<table>
-  <caption>Users_Table</caption>
-  <thead>
-    <tr>
-      <th>Users</th>
-    </tr>
-  </thead>
-  <tbody>
-  {% for username in data %}
-    <tr>
-      <td>{{username}}</td>
-    </tr>
-  {% endfor %}
-  </tbody>
-</table>
+  <div class="table-responsive mt-4">
+    <table class="table table-bordered border-dark table-striped table-hover align-middle text-center">
+      <caption class="caption-top">Users_Table</caption>
+      <thead>
+        <tr>
+          <th scope="col">Users</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for username in data %}
+        <tr>
+          <td>{{username}}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
 {% endblock %}
