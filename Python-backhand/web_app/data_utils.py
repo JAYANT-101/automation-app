@@ -140,6 +140,11 @@ def get_po_numbers_by_product(product_name: str)-> list[tuple]:
         db.execute(SQL_GET_PO_NUMBERS_BY_PRODUCT, (product_name,))
         return db.fetchall()
 
+def get_po_progress_by_id(po_id: int)-> list[tuple]:
+    with DBcm.UseDatabase(db_details) as db:
+        db.execute(SQL_GET_PO_PROGRESS_BY_ID, (po_id,))
+        return db.fetchall()
+
 def delete_po_by_number(product_name: str, po_number: str)-> None:
     with DBcm.UseDatabase(db_details) as db:
         db.execute(SQL_DELETE_PO_BY_NUMBER, (product_name, po_number,))

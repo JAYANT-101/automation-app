@@ -16,6 +16,7 @@ def get_checkr_data_module(monkeypatch):
     data_utils = types.ModuleType("web_app.data_utils")
     data_utils.insert_checker_output = lambda **kwargs: None
     data_utils.increment_po_produced = lambda po_id: None
+    data_utils.get_po_progress_by_id = lambda po_id: [(100, 0)]
 
     monkeypatch.setitem(sys.modules, "web_app", web_app)
     monkeypatch.setitem(sys.modules, "web_app.data_utils", data_utils)
@@ -57,6 +58,16 @@ def valid_alter_checker_output_data():
     return data
 
 
+def expected_po_progress(po_id=3, target=100, produced=0):
+    return {
+        "po_id": po_id,
+        "target": target,
+        "produced": produced,
+        "remaining_target": target - produced,
+        "completed": produced >= target,
+    }
+
+
 def test_checker_output_api_saves_pass_with_empty_defect_name(
         client,
         get_checkr_data_module,
@@ -78,6 +89,11 @@ def test_checker_output_api_saves_pass_with_empty_defect_name(
         "increment_po_produced",
         incremented_po_ids.append,
     )
+    monkeypatch.setattr(
+        get_checkr_data_module,
+        "get_po_progress_by_id",
+        lambda po_id: [(100, 26)],
+    )
 
     payload = valid_checker_output_data()
     response = client.post("/checker-output", json=payload)
@@ -88,6 +104,7 @@ def test_checker_output_api_saves_pass_with_empty_defect_name(
         "status": "created",
         "message": "Checker output saved.",
         "data": expected_data,
+        "po": expected_po_progress(produced=26),
     }
     assert saved_data == expected_data
     assert incremented_po_ids == [payload["po_id"]]
@@ -114,6 +131,11 @@ def test_checker_output_api_saves_alter_with_defect_name(
         "increment_po_produced",
         incremented_po_ids.append,
     )
+    monkeypatch.setattr(
+        get_checkr_data_module,
+        "get_po_progress_by_id",
+        lambda po_id: [(100, 25)],
+    )
 
     payload = valid_alter_checker_output_data()
     response = client.post("/checker-output", json=payload)
@@ -123,6 +145,7 @@ def test_checker_output_api_saves_alter_with_defect_name(
         "status": "created",
         "message": "Checker output saved.",
         "data": payload,
+        "po": expected_po_progress(produced=25),
     }
     assert saved_data == payload
     assert incremented_po_ids == []
@@ -149,6 +172,11 @@ def test_checker_output_api_saves_reject_without_incrementing_produced(
         "increment_po_produced",
         incremented_po_ids.append,
     )
+    monkeypatch.setattr(
+        get_checkr_data_module,
+        "get_po_progress_by_id",
+        lambda po_id: [(100, 25)],
+    )
 
     payload = valid_checker_output_data()
     payload["field_name"] = "reject"
@@ -160,6 +188,7 @@ def test_checker_output_api_saves_reject_without_incrementing_produced(
         "status": "created",
         "message": "Checker output saved.",
         "data": expected_data,
+        "po": expected_po_progress(produced=25),
     }
     assert saved_data == expected_data
     assert incremented_po_ids == []
@@ -180,6 +209,11 @@ def test_checker_output_api_strips_string_fields(
         "insert_checker_output",
         fake_insert_checker_output,
     )
+    monkeypatch.setattr(
+        get_checkr_data_module,
+        "get_po_progress_by_id",
+        lambda po_id: [(100, 25)],
+    )
 
     payload = valid_alter_checker_output_data()
     payload["field_name"] = " alter "
@@ -193,6 +227,7 @@ def test_checker_output_api_strips_string_fields(
         "status": "created",
         "message": "Checker output saved.",
         "data": expected_data,
+        "po": expected_po_progress(produced=25),
     }
     assert saved_data == expected_data
 
@@ -346,4 +381,29 @@ def test_checker_output_api_returns_error_when_produced_increment_fails(
     assert response.get_json() == {
         "status": "error",
         "errors": ["database update failed"],
+    }
+
+
+def test_checker_output_api_returns_error_when_po_progress_lookup_fails(
+        client,
+        get_checkr_data_module,
+        monkeypatch,
+):
+    monkeypatch.setattr(
+        get_checkr_data_module,
+        "insert_checker_output",
+        lambda **kwargs: None,
+    )
+    monkeypatch.setattr(
+        get_checkr_data_module,
+        "get_po_progress_by_id",
+        lambda po_id: [],
+    )
+
+    response = client.post("/checker-output", json=valid_alter_checker_output_data())
+
+    assert response.status_code == 500
+    assert response.get_json() == {
+        "status": "error",
+        "errors": ["PO not found"],
     }

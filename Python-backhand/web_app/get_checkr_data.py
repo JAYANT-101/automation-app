@@ -1,5 +1,9 @@
 from flask import Blueprint, jsonify, request
-from web_app.data_utils import increment_po_produced, insert_checker_output
+from web_app.data_utils import (
+    get_po_progress_by_id,
+    increment_po_produced,
+    insert_checker_output,
+)
 
 
 bp = Blueprint("get_checkr_data", __name__, url_prefix="/checker-output")
@@ -14,6 +18,22 @@ REQUIRED_FIELDS = {
 }
 
 FIELD_NAMES = {"pass", "reject", "alter"}
+
+
+def po_progress_response(po_id: int, po_progress: list[tuple]) -> dict:
+    """Build PO progress data for the checker app response."""
+    if not po_progress:
+        raise ValueError("PO not found")
+
+    target, produced = po_progress[0]
+    remaining_target = max(target - produced, 0)
+    return {
+        "po_id": po_id,
+        "target": target,
+        "produced": produced,
+        "remaining_target": remaining_target,
+        "completed": produced >= target,
+    }
 
 
 def validate_checker_output_data(data: dict) -> tuple[dict | None, list[str]]:
@@ -74,6 +94,10 @@ def receive_checker_output():
         insert_checker_output(**validated_data)
         if validated_data["field_name"] == "pass":
             increment_po_produced(validated_data["po_id"])
+        po_progress = po_progress_response(
+            validated_data["po_id"],
+            get_po_progress_by_id(validated_data["po_id"]),
+        )
     except Exception as e:
         return jsonify({
             "status": "error",
@@ -84,4 +108,5 @@ def receive_checker_output():
         "status": "created",
         "message": "Checker output saved.",
         "data": validated_data,
+        "po": po_progress,
     }), 201

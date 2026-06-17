@@ -82,6 +82,8 @@ SQL_GET_ALL_PRODUCT_NAMES = 'SELECT DISTINCT Product.product_name FROM Product J
 #
 SQL_GET_PO_NUMBERS_BY_PRODUCT = 'SELECT id, po_number, target, produced FROM po WHERE product_name = %s ORDER BY po_number;'
 #
+SQL_GET_PO_PROGRESS_BY_ID = 'SELECT target, produced FROM po WHERE id = %s;'
+#
 SQL_DELETE_PO_BY_NUMBER = 'DELETE FROM po WHERE product_name = %s AND po_number = %s;'
 #
 SQL_UPDATE_PO_TARGET = 'UPDATE po SET target = %s WHERE product_name = %s AND po_number = %s;'
