@@ -175,6 +175,40 @@ def test_dashboard_data_fetches_latest_rows_each_request(
     }
 
 
+def test_dashboard_data_all_view_omits_completed_pos(
+        client,
+        checkers_output_module,
+        monkeypatch,
+):
+    monkeypatch.setattr(
+        checkers_output_module,
+        "show_checker_output_dashboard",
+        lambda selected_date=None: [
+            ("PO-001", "Shirt", 100, 99, 3, 1, 2),
+            ("PO-002", "Pant", 50, 50, 5, 0, 0),
+            ("PO-003", "Jacket", 75, 80, 6, 1, 1),
+        ],
+    )
+    monkeypatch.setattr(
+        checkers_output_module,
+        "get_all_po_defect_counts",
+        lambda selected_date=None: [],
+    )
+
+    response = client.get("/checkers-output/data?view=all")
+
+    assert response.status_code == 200
+    data = response.get_json()
+    assert [row["po_number"] for row in data["rows"]] == ["PO-001"]
+    assert data["status_totals"] == {
+        "total_processed": 6,
+        "defect_percentage": 33.33,
+        "pass_count": 3,
+        "reject_count": 1,
+        "alter_count": 2,
+    }
+
+
 def test_serialize_dashboard_rows_returns_empty_list(client, checkers_output_module):
     with client.application.test_request_context("/checkers-output/data"):
         assert checkers_output_module.serialize_dashboard_rows([]) == []

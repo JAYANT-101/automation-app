@@ -50,6 +50,17 @@ def calculate_defect_percentage(alter_count, total_processed):
     return round((as_count(alter_count) / total_processed) * 100, 2)
 
 
+def filter_incomplete_po_rows(rows, show_all):
+    if not show_all:
+        return rows
+
+    return [
+        row
+        for row in rows
+        if as_count(row[3]) < as_count(row[2])
+    ]
+
+
 def build_defect_details_url(po_number, filter_query_args, line_no=None):
     url_kwargs = {"po_number": po_number, **filter_query_args}
     if line_no is not None:
@@ -267,7 +278,10 @@ def prepare_defect_dashboard(rows, show_line=False, dashboard_rows=None):
 @login_required
 def dashboard():
     selected_date, show_all = get_dashboard_filter()
-    rows = show_checker_output_dashboard(selected_date)
+    rows = filter_incomplete_po_rows(
+        show_checker_output_dashboard(selected_date),
+        show_all,
+    )
     defect_chart = prepare_top_defects_chart(get_all_po_defect_counts(selected_date))
     line_chart = (
         empty_line_defect_chart()
@@ -323,7 +337,10 @@ def defect_details(po_number):
 @login_required
 def dashboard_data():
     selected_date, show_all = get_dashboard_filter()
-    rows = show_checker_output_dashboard(selected_date)
+    rows = filter_incomplete_po_rows(
+        show_checker_output_dashboard(selected_date),
+        show_all,
+    )
     defect_chart = prepare_top_defects_chart(get_all_po_defect_counts(selected_date))
     line_chart = (
         empty_line_defect_chart()
