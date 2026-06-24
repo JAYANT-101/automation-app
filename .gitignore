@@ -19,3 +19,4 @@ build/
 .codex
 .codex
 Python-backhand/scripts
+.flaskenv
